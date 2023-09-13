@@ -1,0 +1,8 @@
+[default]
+region=us-east-1
+output=json
+
+; [profile <fill_name>]
+; role_arn = arn:aws:iam::<fill_arn_account_id>:role/<fill_role_name>
+; mfa_serial = arn:aws:iam::<fill_account_id>:mfa/<fill_user>
+; source_profile = default
