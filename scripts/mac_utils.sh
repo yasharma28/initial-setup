@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Usage Function
 usage() {
@@ -77,6 +77,7 @@ update_homebrew_packages() {
     brew upgrade
 }
 
+# Main
 while [ $# -gt 0 ]; do
     case "$1" in
         --help|-h)
