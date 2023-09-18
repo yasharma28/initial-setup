@@ -74,7 +74,7 @@ save_packages() {
 # Upgrade Homebrew
 update_homebrew_packages() {
     brew update
-    brew upgrade
+    brew upgrade -g
 }
 
 # Main
