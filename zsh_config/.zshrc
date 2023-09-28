@@ -128,6 +128,6 @@ export HOMEBREW_CASK_OPTS="--appdir=${HOME}/homebrew/apps --caskroom=${HOME}/hom
 export HOMEBREW_NO_ENV_HINTS=1
 
 # Import secrets
-source ${HOME}/.secrets.sh
+[[ ! -f ${HOME}/.secrets.sh ]] || source ${HOME}/.secrets.sh
 
 source /Users/ysharma/.docker/init-zsh.sh || true # Added by Docker Desktop

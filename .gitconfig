@@ -1,0 +1,13 @@
+[user]
+    name = Yash Sharma
+    email = yasharma28@gmail.com
+    username = yasharma28
+[init]
+    defaultBranch = main
+[core]
+    editor = vim
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+    pager = less
+    excludesFile = ${HOME}/.gitignore
+[web]
+    browser = firefox
