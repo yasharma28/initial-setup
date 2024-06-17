@@ -1,5 +1,5 @@
-# Compiled source #
-###################
+# Ignore compiled source files #
+###############################
 *.com
 *.class
 *.dll
@@ -7,14 +7,14 @@
 *.o
 *.so
 
-# Temporary files #
-###################
+# Ignore temporary files #
+##########################
+*~
 *.swp
 *.swo
-*~
 
-# Packages #
-############
+# Ignore package files #
+########################
 *.7z
 *.dmg
 *.gz
@@ -24,17 +24,43 @@
 *.tar
 *.zip
 
-# Logs #
-######################
+# Ignore logs #
+###############
 *.log
 
-# OS generated files #
-######################
-.DS_Store*
+# Ignore OS generated files #
+##############################
+.DS_Store
 ehthumbs.db
 Icon?
 Thumbs.db
 
-# Editor files #
-################
-.vscode
+# Ignore editor-specific files and directories #
+###############################################
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore build and dependency directories #
+###########################################
+node_modules/
+bower_components/
+dist/
+build/
+out/
+
+# Ignore environment-specific files #
+#####################################
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Ignore miscellaneous files #
+##############################
+*.bak
+*.tmp
+*.old

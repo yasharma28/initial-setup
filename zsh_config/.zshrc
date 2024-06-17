@@ -109,17 +109,14 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-source ${HOME}/homebrew/opt/powerlevel10k/powerlevel10k.zsh-theme
+source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# Set autocomplete in zsh (This is commented out since it is overridden with the zsh-autocomplete plugin).
-# autoload -Uz compinit && compinit
-
 # Run tmux on startup
 if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-  exec tmux new-session -s
+  tmux attach -t default || tmux new -s default
 fi
 
 # Homebrew Settings
@@ -127,7 +124,12 @@ export PATH=${HOME}/homebrew/bin:${HOME}/bin:${PATH}
 export HOMEBREW_CASK_OPTS="--appdir=${HOME}/homebrew/apps --caskroom=${HOME}/homebrew/caskroom"
 export HOMEBREW_NO_ENV_HINTS=1
 
-# Import secrets
-[[ ! -f ${HOME}/.secrets.sh ]] || source ${HOME}/.secrets.sh
+# gcloud Settings
+source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
+source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
 
-source /Users/ysharma/.docker/init-zsh.sh || true # Added by Docker Desktop
+# Import secrets
+[[ ! -f ${HOME}/.secrets.txt ]] || source ${HOME}/.secrets.txt
+
+# Alias
+alias k=kubectl

@@ -2,12 +2,60 @@
     name = Yash Sharma
     email = yasharma28@gmail.com
     username = yasharma28
+
 [init]
     defaultBranch = main
+
 [core]
-    editor = vim
+    editor = nvim
     whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
     pager = less
     excludesFile = ${HOME}/.gitignore
+
+[alias]
+    co = checkout
+    br = branch
+    ci = commit
+    st = status
+    lg = log --graph --oneline --decorate --all
+    last = log -1 HEAD
+    amend = commit --amend --no-edit
+    save = "!git add -A && git commit -m 'WIP'"
+    unstage = reset HEAD --
+
+[diff]
+    tool = vimdiff
+
+[merge]
+    tool = vimdiff
+
+[mergetool]
+    prompt = false
+
 [web]
     browser = firefox
+
+[push]
+    default = simple
+
+[credential]
+    helper = store
+
+[rebase]
+    autosquash = true
+
+[color]
+    ui = auto
+
+[log]
+    decorate = short
+
+[status]
+    short = true
+    branch = true
+
+[fetch]
+    prune = true
+
+[pull]
+    rebase = true

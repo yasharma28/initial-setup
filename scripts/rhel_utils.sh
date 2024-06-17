@@ -16,30 +16,30 @@ A set of utility functions to setup/run programs smoothly.
 
 OPTIONS:
   -h, --help                        Display this help message and exit.
-  -u, --update-debian-packages      Update Ubuntu and upgrade its packages.
+  -u, --update-rhel-packages        Update RHEL and upgrade its packages.
   --dry-run                         Simulate the operations without executing them.
 
 EXAMPLES:
   ${0##*/} --help
       Display this help message.
 
-  ${0##*/} --update-debian-packages
-      Update Ubuntu and upgrade its packages.
+  ${0##*/} --update-rhel-packages
+      Update RHEL and upgrade its packages.
 
-  ${0##*/} --dry-run --update-debian-packages
-      Simulate the update of Ubuntu packages without making any changes.
+  ${0##*/} --dry-run --update-rhel-packages
+      Simulate the update of RHEL packages without making any changes.
 
 EOF
 }
 
 #######################################
-# Update Debian packages.
+# Update RHEL packages.
 # Globals:
 #   DRY_RUN
 # Outputs:
 #   Output to STDOUT and STDERR.
 #######################################
-update_debian_packages() {
+update_rhel_packages() {
     if $DRY_RUN; then
         echo "[DRY RUN] Would update package list."
         echo "[DRY RUN] Would upgrade installed packages."
@@ -54,17 +54,17 @@ update_debian_packages() {
     fi
 
     # Update the package list
-    apt update
+    yum check-update
 
     # Upgrade all installed packages
-    apt upgrade -y
+    yum update -y
 
     # Clean up unnecessary packages and cached files
-    apt autoremove -y
-    apt clean
+    yum autoremove -y
+    yum clean all
 
     # Display a message indicating the update is complete
-    echo "Ubuntu and all packages have been updated."
+    echo "RHEL and all packages have been updated."
 }
 
 #######################################
@@ -83,8 +83,8 @@ main() {
                 usage
                 exit 0
                 ;;
-            --update-debian-packages|-u)
-                update_debian_packages
+            --update-rhel-packages|-u)
+                update_rhel_packages
                 shift
                 ;;
             --dry-run)
