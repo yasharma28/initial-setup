@@ -123,10 +123,26 @@ fi
 export PATH=${HOME}/homebrew/bin:${HOME}/bin:${PATH}
 export HOMEBREW_CASK_OPTS="--appdir=${HOME}/homebrew/apps --caskroom=${HOME}/homebrew/caskroom"
 export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_BUNDLE_FILE=${HOME}/.brew/Brewfile
 
 # gcloud Settings
 source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
 source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+
+# RIPGREP Settings
+export RIPGREP_CONFIG_PATH=${HOME}/.ripgrep
+
+# XDG Setting
+export XDG_CONFIG_HOME=${HOME}/.config
+
+# NVM Settigns
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Python settings for pyenv
+export CPPFLAGS="-I$(brew --prefix)/include"
+export LDFLAGS="-L$(brew --prefix)/lib"
 
 # Import secrets
 [[ ! -f ${HOME}/.secrets.txt ]] || source ${HOME}/.secrets.txt

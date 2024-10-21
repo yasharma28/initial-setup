@@ -24,10 +24,10 @@
     unstage = reset HEAD --
 
 [diff]
-    tool = vimdiff
+    tool = nvimdiff
 
 [merge]
-    tool = vimdiff
+    tool = nvimdiff
 
 [mergetool]
     prompt = false
@@ -36,7 +36,7 @@
     browser = firefox
 
 [push]
-    default = simple
+    default = current
 
 [credential]
     helper = store
@@ -59,3 +59,9 @@
 
 [pull]
     rebase = true
+
+[commit]
+    template = ${HOME}/.gitmessage.txt
+
+[rerere]
+    enabled = true

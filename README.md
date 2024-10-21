@@ -28,7 +28,8 @@ This repository contains configuration files and utility scripts to set up and m
 ├── .github
 │   ├── CODEOWNERS
 │   └── workflows
-│       └── dependabot.yml
+│       ├── dependabot.yml
+│       └── release.yml
 ├── aws
 │   ├── config
 │   └── credentials

@@ -1,0 +1,77 @@
+name: Create Tag and Release on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+      - main
+
+jobs:
+  create_tag_release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Determine Release Type from PR Title
+        id: release_type
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "PR Title: $PR_TITLE"
+          if [[ "$PR_TITLE" =~ major|minor|patch ]]; then
+            RELEASE_TYPE=$(echo "$PR_TITLE" | grep -ioP 'major|minor|patch' | head -n1 | tr '[:upper:]' '[:lower:]')
+          else
+            RELEASE_TYPE="none"
+          fi
+          echo "Release type: $RELEASE_TYPE"
+          echo "RELEASE_TYPE=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Generate New Tag
+        if: steps.release_type.outputs.RELEASE_TYPE != 'none'
+        id: generate_tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST_TAG#v}"
+
+          case "${{ steps.release_type.outputs.RELEASE_TYPE }}" in
+            major) ((MAJOR++)); MINOR=0; PATCH=0 ;;
+            minor) ((MINOR++)); PATCH=0 ;;
+            patch) ((PATCH++)) ;;
+          esac
+
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          echo "New tag will be: $NEW_TAG"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create and Push Tag
+        if: steps.release_type.outputs.RELEASE_TYPE != 'none'
+        run: |
+          git tag ${{ steps.generate_tag.outputs.NEW_TAG }}
+          git push origin ${{ steps.generate_tag.outputs.NEW_TAG }}
+
+      - name: Create GitHub Release
+        if: steps.release_type.outputs.RELEASE_TYPE != 'none'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.generate_tag.outputs.NEW_TAG }}
+          release_name: Release ${{ steps.generate_tag.outputs.NEW_TAG }}
+          body: |
+            Automated ${{ steps.release_type.outputs.RELEASE_TYPE }} release of version ${{ steps.generate_tag.outputs.NEW_TAG }}
+
+            Changes in this release:
+            ${{ github.event.pull_request.body }}
+          draft: false
+          prerelease: false
