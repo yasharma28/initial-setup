@@ -1,6 +1,7 @@
 version: 2
 
 updates:
+  # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -9,7 +10,11 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
 
+  # Go module dependencies
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -18,7 +23,11 @@ updates:
     labels:
       - "dependencies"
       - "go"
+    commit-message:
+      prefix: "build"
+      include: "scope"
 
+  # Python dependencies
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -27,7 +36,11 @@ updates:
     labels:
       - "dependencies"
       - "python"
+    commit-message:
+      prefix: "build"
+      include: "scope"
 
+  # JavaScript dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -36,3 +49,9 @@ updates:
     labels:
       - "dependencies"
       - "javascript"
+    commit-message:
+      prefix: "build"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
