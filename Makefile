@@ -101,39 +101,49 @@ mac_setup: backup
 # ==========================
 # Setup for Debian
 # ==========================
+# NOTE: unlike macOS (Brewfile), the terminal tools are NOT installed here.
+# Install them via the distro package manager first: apt install neovim tmux
+# fzf zoxide; starship and sesh via their official curl installers. The configs
+# and bootstrap below assume those binaries are present (bootstrap warns if not).
 debian_setup: backup
 	@$(info --->Setting up for Debian<---)
 	cp -r aws $(HOME)/.aws
 	cp -r ssh $(HOME)/.ssh
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
 	cp -r vim $(HOME)/.vim
-	@if [ -f $(HOME)/.zshrc ] then
-		cat zsh_config/.zshrc >> $(HOME)/.zshrc
-	else
-		cp zsh_config/.zshrc $(HOME)/.zshrc
-	fi
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf
 	cp .gitignore $(HOME)/.gitignore
 	cp .gitconfig $(HOME)/.gitconfig
+	@echo "--->Deploying shell + tool configs<---"
+	cp zsh_config/.zshrc $(HOME)/.zshrc
+	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
+	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
+	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
+	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
+	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
+	./scripts/bootstrap_terminal.sh
+	@echo "--->Updating system packages (needs root)<---"
 	./scripts/debian_utils.sh -u
 
 # ==========================
 # Setup for RHEL
 # ==========================
+# NOTE: install the terminal tools first via dnf/yum (neovim tmux fzf zoxide)
+# plus starship/sesh via their curl installers — they are not installed here.
 rhel_setup: backup
 	@$(info --->Setting up for RHEL<---)
 	cp -r aws $(HOME)/.aws
 	cp -r ssh $(HOME)/.ssh
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
 	cp -r vim $(HOME)/.vim
-	@if [ -f $(HOME)/.zshrc ] then
-		cat zsh_config/.zshrc >> $(HOME)/.zshrc
-	else
-		cp zsh_config/.zshrc $(HOME)/.zshrc
-	fi
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf
 	cp .gitignore $(HOME)/.gitignore
 	cp .gitconfig $(HOME)/.gitconfig
+	@echo "--->Deploying shell + tool configs<---"
+	cp zsh_config/.zshrc $(HOME)/.zshrc
+	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
+	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
+	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
+	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
+	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
+	./scripts/bootstrap_terminal.sh
+	@echo "--->Updating system packages (needs root)<---"
 	./scripts/rhel_utils.sh -u
 
 # ==========================
