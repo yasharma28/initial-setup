@@ -1,11 +1,22 @@
 #========================================================
 # TERMINAL SESSION MANAGEMENT
 #========================================================
-# Homebrew is at a non-standard prefix (~/homebrew) that isn't in /etc/paths, so
-# put its bin on PATH now — the tmux auto-launch below must find Homebrew's tmux
-# before the full PATH array is assembled later in this file. (typeset -U dedupes
-# the duplicate when the path=() block runs.)
-export PATH="$HOME/homebrew/bin:$PATH"
+# Detect the Homebrew prefix without spawning `brew` (a per-shell subprocess is
+# slow). Checks a no-sudo home prefix first, then the Apple Silicon and Intel
+# defaults; everything below references $HOMEBREW_PREFIX. Keeps this file
+# portable across machines with Homebrew installed in different locations.
+for _brew_prefix in "$HOME/homebrew" /opt/homebrew /usr/local; do
+  if [[ -x "$_brew_prefix/bin/brew" ]]; then
+    export HOMEBREW_PREFIX="$_brew_prefix"
+    break
+  fi
+done
+unset _brew_prefix
+
+# Put Homebrew's bin on PATH now — the tmux auto-launch below must find
+# Homebrew's tmux before the full PATH array is assembled later in this file.
+# (typeset -U dedupes the duplicate when the path=() block runs.)
+[[ -n "$HOMEBREW_PREFIX" ]] && export PATH="$HOMEBREW_PREFIX/bin:$PATH"
 
 # Auto-attach tmux early, before the rest of shell init. Real interactive
 # terminals only: -t 1 and TERM_PROGRAM guards keep it from firing in IDE,
@@ -56,16 +67,15 @@ typeset -U path  # -U flag ensures uniqueness
 path=(
   "${HOME}/.local/bin"
   "${HOME}/bin"
-  "${HOME}/homebrew/bin"
-  "${HOME}/homebrew/sbin"
+  "${HOMEBREW_PREFIX}/bin"
+  "${HOMEBREW_PREFIX}/sbin"
   "${KREW_ROOT:-$HOME/.krew}/bin"
-  "${HOME}/homebrew/apps/Obsidian.app/Contents/MacOS"  # Obsidian CLI (moved from .zprofile)
+  "${HOMEBREW_PREFIX}/apps/Obsidian.app/Contents/MacOS"  # Obsidian CLI (moved from .zprofile)
   $path
 )
 export PATH
 
-# Homebrew Settings
-export HOMEBREW_PREFIX="${HOME}/homebrew"
+# Homebrew Settings (HOMEBREW_PREFIX is detected at the top of this file)
 export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
 export HOMEBREW_BUNDLE_FILE="${HOME}/.brew/Brewfile"
 export HOMEBREW_NO_ENV_HINTS=1
