@@ -1,0 +1,66 @@
+# Starship prompt — approximates the previous Powerlevel10k setup.
+# Two-line layout: context on top, a clean input character below.
+# DevOps context (k8s/aws/gcloud/terraform) shows only inside relevant dirs.
+# Docs: https://starship.rs/config/
+
+# Don't stall the prompt on git status in very large repos.
+command_timeout = 1000
+
+# No blank line before each prompt — keeps the prompt flush under the window
+# top and avoids a leading gap on the first line of a session.
+add_newline = false
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$kubernetes\
+$aws\
+$gcloud\
+$terraform\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold yellow"
+
+# Surfaced for DevOps work — kubernetes is off by default in Starship.
+[kubernetes]
+disabled = false
+symbol = "☸ "
+style = "bold blue"
+format = '[$symbol$context( \($namespace\))]($style) '
+
+[aws]
+symbol = "aws "
+style = "bold yellow"
+format = '[$symbol$profile( \($region\))]($style) '
+
+[gcloud]
+symbol = "gcp "
+style = "bold blue"
+
+[terraform]
+symbol = "tf "
+style = "bold purple"
+# Workspace only (the version lookup is the slow part of this module).
+format = '[$symbol$workspace]($style) '
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+style = "bold yellow"

@@ -1,84 +1,60 @@
 # initial-setup
 
-This repository contains configuration files and utility scripts to set up and maintain a consistent development environment across different operating systems, including macOS, Debian, RHEL, and Windows.
+Configuration files and scripts to stand up a consistent development environment
+on a fresh machine (macOS, Debian, RHEL, Windows). One `make` target installs the
+packages, deploys the dotfiles, and bootstraps the shell/editor frameworks.
 
 ## Table of Contents
 
+- [What gets set up](#what-gets-set-up)
 - [Repository Structure](#repository-structure)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Setup](#setup)
+  - [Remaining manual steps](#remaining-manual-steps)
   - [Targets](#targets)
-  - [Help](#help)
 - [Configuration Details](#configuration-details)
-  - [Git Configuration](#git-configuration)
-  - [AWS Configuration](#aws-configuration)
-  - [Editor Configuration](#editor-configuration)
-  - [Shell Configuration](#shell-configuration)
 - [Scripts](#scripts)
-- [License](#license)
-- [Contributing](#contributing)
-- [Issues](#issues)
-- [Contact](#contact)
+- [License / Contributing / Contact](#license)
+
+## What gets set up
+
+The macOS path (`make mac_setup`) provisions a full terminal stack:
+
+| Layer | Tool |
+|-------|------|
+| Shell | zsh + oh-my-zsh (`zsh-autosuggestions`) |
+| Prompt | [Starship](https://starship.rs) (migrated off powerlevel10k) |
+| Multiplexer | tmux + the [gpakosz](https://github.com/gpakosz/.tmux) framework, with `tmux-resurrect` + `tmux-continuum` for session persistence |
+| Sessions | [sesh](https://github.com/joshmedeski/sesh) + fzf + zoxide — jump across repos |
+| Editor | Neovim with a [lazy.nvim](https://lazy.folke.io) config (native LSP, blink.cmp, treesitter, which-key) |
+| Font | MesloLGS Nerd Font (complete) |
 
 ## Repository Structure
 
 ```sh
 .
-├── .github
-│   ├── CODEOWNERS
-│   └── workflows
-│       ├── dependabot.yml
-│       └── release.yml
-├── aws
-│   ├── config
-│   └── credentials
-├── brew
-│   └── Brewfile
-├── nvim
-│   ├── after
-│   │   └── plugin
-│   │       ├── colors.lua
-│   │       ├── fugitive.lua
-│   │       ├── harpoon.lua
-│   │       ├── lsp.lua
-│   │       ├── telescope.lua
-│   │       ├── tresitter.lua
-│   │       └── undotree.lua
-│   ├── lua
-│   │   └── nvimrc
-│   │       ├── init.lua
-│   │       ├── packer.lua
-│   │       ├── remap.lua
-│   │       └── set.lua
-│   ├── plugin
-│   │   └── packer_compiled.lua
-│   └── init.lua
-├── powershell_config
-│   ├── Microsoft.PowerShell_profile.ps1
-│   ├── oh-my-posh_default.yaml
-│   └── packages_windows.json
-├── scripts
+├── .github/                     # CODEOWNERS, dependabot, release workflow
+├── aws/                         # ~/.aws config + credentials TEMPLATE (placeholders)
+├── brew/Brewfile                # `brew bundle` package list
+├── nvim/                        # lazy.nvim config → ~/.config/nvim (see nvim/README.md)
+├── powershell_config/           # Windows profile
+├── scripts/
+│   ├── bootstrap_terminal.sh    # installs oh-my-zsh, gpakosz tmux, tpm, nvim warmup
+│   ├── mac_utils.sh             # Homebrew install/update/cleanup helpers
 │   ├── debian_utils.sh
-│   ├── mac_utils.sh
 │   ├── rhel_utils.sh
 │   └── windows_utils.ps1
-├── ssh
-│   └── config
-├── vim
-│   ├── autoload
-│   ├── backup
-│   ├── colors
-│   ├── plugged
-│   └── .vimrc
-├── zsh_config
+├── ssh/config                   # ~/.ssh/config
+├── vim/                         # legacy vim config + .vimrc
+├── zsh_config/
 │   ├── .zshrc
-│   ├── install.txt
-│   ├── iterm_yash_personal.json
-│   └── tmux.conf.local
+│   ├── starship.toml            # → ~/.config/starship.toml
+│   ├── sesh.toml                # → ~/.config/sesh/sesh.toml
+│   ├── tmux.conf.local          # → ~/.tmux.conf.local (gpakosz user config)
+│   ├── iterm_yash_personal.json # iTerm profile (font already set to the Nerd Font)
+│   └── install.txt              # manual-install reference (now automated)
 ├── .gitconfig
-├── .gitignore
-├── LICENSE
 ├── Makefile
 └── README.md
 ```
@@ -87,95 +63,76 @@ This repository contains configuration files and utility scripts to set up and m
 
 ### Prerequisites
 
-- Ensure you have the necessary permissions to run the scripts and copy files to the required locations.
-- For macOS, install Homebrew if it is not already installed.
-- For Debian and RHEL, ensure you have root access or sudo privileges.
-- For Windows, ensure you can run PowerShell scripts as an administrator.
+- **Homebrew** installed (macOS). The `.zshrc` expects Homebrew at `~/homebrew`
+  (a non-standard, no-sudo prefix). If yours is at `/opt/homebrew` or
+  `/usr/local`, adjust the `PATH`/`HOMEBREW_PREFIX` lines in `zsh_config/.zshrc`
+  before running, or the tmux auto-attach and brew lookups won't resolve.
+- **An SSH key registered with GitHub** — needed to clone this repo in the first
+  place (`git@github.com:yasharma28/initial-setup.git`).
 
 ### Setup
 
-To set up your development environment, navigate to the root of this repository and run:
-
 ```sh
-make
+git clone git@github.com:yasharma28/initial-setup.git
+cd initial-setup
+make mac_setup
 ```
 
-This command will detect your operating system and run the appropriate setup targets.
+`mac_setup` runs `backup` first (snapshots existing `~/.zshrc`, `~/.aws`,
+`~/.ssh/config`, etc. with a dated `.BAK` suffix), then installs Homebrew
+packages, deploys the dotfiles, and runs `bootstrap_terminal.sh` to install
+oh-my-zsh, the gpakosz tmux framework, tpm + its plugins, and warm up Neovim.
+
+### Remaining manual steps
+
+Two things can't be fully automated:
+
+1. **iTerm font / profile** — import `zsh_config/iterm_yash_personal.json`
+   (iTerm → Settings → Profiles → Other Actions → Import JSON Profiles). Its
+   font is already set to `MesloLGS Nerd Font Mono`, so icons render with no
+   tofu. If you skip the import, set the profile font to that family manually.
+2. **First nvim launch** — the warmup is best-effort; if it was skipped (e.g.
+   `nvim` wasn't on `PATH` yet), the first `nvim` launch finishes installing
+   plugins and compiling treesitter parsers automatically.
 
 ### Targets
 
-You can also run specific targets based on your operating system:
-
-- **macOS**:
-  ```sh
-  make mac_setup
-  ```
-
-- **Debian**:
-  ```sh
-  make debian_setup
-  ```
-
-- **RHEL**:
-  ```sh
-  make rhel_setup
-  ```
-
-- **Windows**:
-  ```sh
-  make windows_setup
-  ```
-
-### Help
-
-For more information on the available targets and their usage, run:
-
 ```sh
+make              # detect OS and run the matching *_setup
+make mac_setup    # macOS
+make debian_setup # Debian
+make rhel_setup   # RHEL
+make windows_setup
 make help
 ```
 
 ## Configuration Details
 
-### Git Configuration
-
-The repository includes `.gitconfig` and `.gitignore` files to standardize your Git configuration and ignore patterns across different projects.
-
-### AWS Configuration
-
-The `aws` directory contains example configuration files for AWS credentials and configuration. These files will be copied to `~/.aws` during the setup process.
-
-### Editor Configuration
-
-The repository includes configuration files for various editors:
-
-- **Neovim**: Configuration files in the `nvim` directory.
-- **Vim**: Configuration files in the `vim` directory.
-
-### Shell Configuration
-
-- **Zsh**: The `zsh_config` directory contains `.zshrc` and other Zsh-related configuration files.
+- **Git** — `.gitconfig` / `.gitignore`.
+- **AWS** — `aws/` holds a `config` + a `credentials` **template** with
+  placeholders; fill them in after setup. `backup` snapshots any existing
+  `~/.aws` before overwriting.
+- **Editors** — Neovim (`nvim/`, the active config — see `nvim/README.md`) and
+  legacy Vim (`vim/`).
+- **Shell** — `zsh_config/` holds the zsh, Starship, sesh, and tmux configs.
 
 ## Scripts
 
-The `scripts` directory contains utility scripts to automate various setup tasks:
-
-- **mac_utils.sh**: Utility script for macOS.
-- **debian_utils.sh**: Utility script for Debian.
-- **rhel_utils.sh**: Utility script for RHEL.
-- **windows_utils.ps1**: PowerShell script for Windows.
+- **bootstrap_terminal.sh** — idempotent installer for oh-my-zsh, gpakosz tmux,
+  tpm + plugins, and the Neovim warmup. Safe to re-run.
+- **mac_utils.sh** — Homebrew install (`-i`), update/cleanup/save (`-a`), and
+  AWS profile env helpers.
+- **debian_utils.sh / rhel_utils.sh / windows_utils.ps1** — per-OS helpers.
 
 ## License
 
-This repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+MIT — see [LICENSE](LICENSE).
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request with your changes.
-
-## Issues
-
-If you encounter any issues, please create a new issue in the repository's [issue tracker](https://github.com/yasharma28/initial-setup/issues).
+Fork and open a PR. The release workflow tags a new version when a PR whose
+title contains `major`/`minor`/`patch` is merged.
 
 ## Contact
 
-For questions or feedback, please contact [Yash Sharma](mailto:yasharma28@gmail.com).
+[Yash Sharma](mailto:yasharma28@gmail.com) · [Issues](https://github.com/yasharma28/initial-setup/issues)

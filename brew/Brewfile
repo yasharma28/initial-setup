@@ -1,9 +1,29 @@
+# == Brewfile ==
+# Homebrew packages for a fresh machine, installed via `brew bundle`.
+# The terminal stack is grouped first; GUI apps and VS Code extensions follow.
+
 tap "homebrew/bundle"
 tap "null-dev/firefox-profile-switcher"
+
+# --- Terminal stack ---
+# Prompt migrated off powerlevel10k -> starship. fzf+zoxide feed the sesh picker.
 brew "coreutils"
-brew "powerlevel10k"
+brew "fzf"               # fuzzy finder — sesh picker, Ctrl-R history, Ctrl-T files
+brew "neovim"
+brew "sesh"              # tmux session manager / project switcher
+brew "starship"          # prompt (replaces powerlevel10k)
 brew "tmux"
+brew "tree-sitter-cli"   # compiles nvim treesitter parsers (main branch needs it)
+brew "zoxide"            # smart dir jumping; records dirs to seed sesh
+
 brew "null-dev/firefox-profile-switcher/firefox-profile-switcher-connector"
+
+# --- Fonts ---
+# Complete Meslo Nerd Font. Set iTerm's profile font to "MesloLGS Nerd Font Mono"
+# (NOT the minimal "MesloLGS NF" — it lacks the glyphs which-key/Starship use).
+cask "font-meslo-lg-nerd-font"
+
+# --- GUI apps ---
 cask "1password"
 cask "authy"
 cask "balenaetcher"
@@ -17,6 +37,8 @@ cask "rectangle"
 cask "visual-studio-code"
 cask "whatsapp"
 cask "zoom"
+
+# --- VS Code extensions ---
 vscode "dbaeumer.vscode-eslint"
 vscode "esbenp.prettier-vscode"
 vscode "github.vscode-github-actions"

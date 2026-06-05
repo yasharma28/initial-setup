@@ -48,30 +48,31 @@ backup:
 	@$(info --->Backing up files<---)
 	@if [ -f $(HOME)/.zshrc ]; then cp $(HOME)/.zshrc $(HOME)/.zshrc.$(shell date +%Y%m%d).BAK; fi
 	@if [ -f $(HOME)/.tmux.conf ]; then cp $(HOME)/.tmux.conf $(HOME)/.tmux.conf.$(shell date +%Y%m%d).BAK; fi
+	@if [ -f $(HOME)/.tmux.conf.local ]; then cp $(HOME)/.tmux.conf.local $(HOME)/.tmux.conf.local.$(shell date +%Y%m%d).BAK; fi
 	@if [ -f $(HOME)/.gitignore ]; then cp $(HOME)/.gitignore $(HOME)/.gitignore.$(shell date +%Y%m%d).BAK; fi
 	@if [ -f $(HOME)/.gitconfig ]; then cp $(HOME)/.gitconfig $(HOME)/.gitconfig.$(shell date +%Y%m%d).BAK; fi
+	@if [ -d $(HOME)/.aws ]; then cp -r $(HOME)/.aws $(HOME)/.aws.$(shell date +%Y%m%d).BAK; fi
+	@if [ -f $(HOME)/.ssh/config ]; then cp $(HOME)/.ssh/config $(HOME)/.ssh/config.$(shell date +%Y%m%d).BAK; fi
 
 # ==========================
 # Setup Target
 # ==========================
 setup: backup
 	@$(info --->Detecting operating system<---)
-	@if [ "$(UNAME_S)" = "Darwin" ]; then
-		$(MAKE) mac_setup
-	elif [ "$(UNAME_S)" = "Linux" ]; then
-		if grep -q "ID=debian" /etc/os-release; then
-			$(MAKE) debian_setup
-		elif grep -q "ID=rhel" /etc/os-release; then
-			$(MAKE) rhel_setup
-		else
-			$(info Unsupported Linux distribution.)
-			exit 1
-		fi
-	elif [ "$(OS)" = "Windows_NT" ]; then
-		$(MAKE) windows_setup
-	else
-		$(info Unsupported operating system.)
-		exit 1
+	@if [ "$(UNAME_S)" = "Darwin" ]; then \
+		$(MAKE) mac_setup; \
+	elif [ "$(UNAME_S)" = "Linux" ]; then \
+		if grep -q "ID=debian" /etc/os-release; then \
+			$(MAKE) debian_setup; \
+		elif grep -q "ID=rhel" /etc/os-release; then \
+			$(MAKE) rhel_setup; \
+		else \
+			echo "Unsupported Linux distribution." >&2; exit 1; \
+		fi; \
+	elif [ "$(OS)" = "Windows_NT" ]; then \
+		$(MAKE) windows_setup; \
+	else \
+		echo "Unsupported operating system." >&2; exit 1; \
 	fi
 
 # ==========================
@@ -82,17 +83,19 @@ mac_setup: backup
 	cp -r aws $(HOME)/.aws
 	cp -r brew $(HOME)/.brew
 	cp -r ssh $(HOME)/.ssh
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
 	cp -r vim $(HOME)/.vim
-	@if [ -f $(HOME)/.zshrc ] then
-		cat zsh_config/.zshrc >> $(HOME)/.zshrc
-	else
-		cp zsh_config/.zshrc $(HOME)/.zshrc
-	fi
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf
 	cp .gitignore $(HOME)/.gitignore
 	cp .gitconfig $(HOME)/.gitconfig
+	@echo "--->Installing Homebrew packages<---"
 	./scripts/mac_utils.sh -i
+	@echo "--->Deploying shell + tool configs<---"
+	cp zsh_config/.zshrc $(HOME)/.zshrc
+	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
+	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
+	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
+	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
+	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
+	./scripts/bootstrap_terminal.sh
 	./scripts/mac_utils.sh -a
 
 # ==========================
