@@ -1,7 +1,8 @@
+# Only github-actions is configured: this repo has no Go/pip/npm manifests for
+# Dependabot to scan, so those ecosystems were removed as dead config.
 version: 2
 
 updates:
-  # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -13,45 +14,3 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
-
-  # Go module dependencies
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "go"
-    commit-message:
-      prefix: "build"
-      include: "scope"
-
-  # Python dependencies
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "python"
-    commit-message:
-      prefix: "build"
-      include: "scope"
-
-  # JavaScript dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "javascript"
-    commit-message:
-      prefix: "build"
-      include: "scope"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
