@@ -364,3 +364,21 @@ order; each is a self-contained commit/PR slice):
 
 Validation gates: `shellcheck scripts/*.sh`, `make -n` on every target,
 `stylua --check nvim/`, `zsh -n` on the assembled zshrc, a dry stow run.
+
+---
+
+## Implementation status — DONE (branch `refactor/repo-modernization`)
+
+All five slices implemented and committed:
+
+1. `refactor(dotfiles)` — restructure into `stow/` packages + harden configs.
+2. `refactor(scripts)` — `link.sh` Stow wrapper + de-risk utils to `bash.md`.
+3. `refactor(make)` — Stow deploy, `PROFILE=`, lifecycle targets.
+4. `ci(governance)` — secret guards, git identity, lint CI, fix `release.yml`.
+5. `docs` — thin README + Divio `docs/` tree.
+
+Validated locally: `shellcheck scripts/*.sh` clean; `zsh -n` on `.zshrc` clean;
+all winget/JSON parse; `make help` + `make -n` on every target parse; gitconfig
+parses; `.gitignore` blocks credentials while keeping `secrets.example.sh`.
+Not runnable locally (enforced by CI / on first real deploy): `stow` (not
+installed here), `stylua`/`yamllint` (CI), winget import (Windows only).
