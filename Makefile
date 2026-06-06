@@ -1,155 +1,83 @@
 .DEFAULT_GOAL := help
 
-# ==========================
-# Variable Definitions
-# ==========================
+# OS detection + a timestamp for backups.
+UNAME_S := $(shell uname -s)
+DATE    := $(shell date +%Y%m%d%H%M%S)
 
-# Operating System Detection
-UNAME_S := $(shell bash -c 'uname -s')
-OS := $(shell bash -c 'uname -o' 2>/dev/null || echo "$(OS)")
+# Extra app profile layered on the core stack: personal | work (empty = core).
+PROFILE ?=
 
-# ==========================
-# Phony Targets
-# ==========================
-.PHONY: all help setup mac_setup debian_setup rhel_setup windows_setup backup
+# Dotfile packages symlinked by scripts/link.sh.
+PACKAGES := zsh tmux starship sesh nvim vim git ssh aws
 
-# ==========================
-# Default Target
-# ==========================
-all: setup
+.PHONY: help all setup backup mac_setup debian_setup rhel_setup windows_setup \
+        lint unlink clean
 
-# ==========================
-# Help Target
-# ==========================
-help:
-	@$(info Setup Utility)
-	@$(info )
-	@$(info Available Targets:)
-	@$(info   all                    Default target, detects OS and runs the corresponding setup.)
-	@$(info   help                   Display this help message.)
-	@$(info   mac_setup              Setup configuration for macOS.)
-	@$(info   debian_setup           Setup configuration for Debian.)
-	@$(info   rhel_setup             Setup configuration for RHEL.)
-	@$(info   windows_setup          Setup configuration for Windows.)
-	@$(info )
-	@$(info Examples:)
-	@$(info   make all               Run the default target.)
-	@$(info   make mac_setup         Run the macOS setup.)
-	@$(info   make debian_setup      Run the Debian setup.)
-	@$(info   make rhel_setup        Run the RHEL setup.)
-	@$(info   make windows_setup     Run the Windows setup.)
-	@$(info )
-	@$(info Note: To run any of these commands in dry mode, add '--dry-run' to the make command.)
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} \
+		/^[a-zA-Z_-]+:.*##/ {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# ==========================
-# Backup Target
-# ==========================
-backup:
-	@$(info --->Backing up files<---)
-	@if [ -f $(HOME)/.zshrc ]; then cp $(HOME)/.zshrc $(HOME)/.zshrc.$(shell date +%Y%m%d).BAK; fi
-	@if [ -f $(HOME)/.tmux.conf ]; then cp $(HOME)/.tmux.conf $(HOME)/.tmux.conf.$(shell date +%Y%m%d).BAK; fi
-	@if [ -f $(HOME)/.tmux.conf.local ]; then cp $(HOME)/.tmux.conf.local $(HOME)/.tmux.conf.local.$(shell date +%Y%m%d).BAK; fi
-	@if [ -f $(HOME)/.gitignore ]; then cp $(HOME)/.gitignore $(HOME)/.gitignore.$(shell date +%Y%m%d).BAK; fi
-	@if [ -f $(HOME)/.gitconfig ]; then cp $(HOME)/.gitconfig $(HOME)/.gitconfig.$(shell date +%Y%m%d).BAK; fi
-	@if [ -d $(HOME)/.aws ]; then cp -r $(HOME)/.aws $(HOME)/.aws.$(shell date +%Y%m%d).BAK; fi
-	@if [ -f $(HOME)/.ssh/config ]; then cp $(HOME)/.ssh/config $(HOME)/.ssh/config.$(shell date +%Y%m%d).BAK; fi
+all: setup ## Alias for setup
 
-# ==========================
-# Setup Target
-# ==========================
-setup: backup
-	@$(info --->Detecting operating system<---)
+setup: backup ## Detect the OS and run the matching setup
 	@if [ "$(UNAME_S)" = "Darwin" ]; then \
 		$(MAKE) mac_setup; \
 	elif [ "$(UNAME_S)" = "Linux" ]; then \
-		if grep -q "ID=debian" /etc/os-release; then \
-			$(MAKE) debian_setup; \
-		elif grep -q "ID=rhel" /etc/os-release; then \
-			$(MAKE) rhel_setup; \
-		else \
-			echo "Unsupported Linux distribution." >&2; exit 1; \
-		fi; \
-	elif [ "$(OS)" = "Windows_NT" ]; then \
-		$(MAKE) windows_setup; \
+		if grep -qiE 'debian|ubuntu' /etc/os-release; then $(MAKE) debian_setup; \
+		elif grep -qiE 'rhel|fedora|centos|rocky|almalinux' /etc/os-release; then $(MAKE) rhel_setup; \
+		else echo "Unsupported Linux distribution." >&2; exit 1; fi; \
 	else \
-		echo "Unsupported operating system." >&2; exit 1; \
+		echo "Unsupported OS: $(UNAME_S)" >&2; exit 1; \
 	fi
 
-# ==========================
-# Setup for Mac
-# ==========================
-mac_setup: backup
-	@$(info --->Setting up for Mac<---)
-	cp -r aws $(HOME)/.aws
-	cp -r brew $(HOME)/.brew
-	cp -r ssh $(HOME)/.ssh
-	cp -r vim $(HOME)/.vim
-	cp .gitignore $(HOME)/.gitignore
-	cp .gitconfig $(HOME)/.gitconfig
-	@echo "--->Installing Homebrew packages<---"
-	./scripts/mac_utils.sh -i
-	@echo "--->Deploying shell + tool configs<---"
-	cp zsh_config/.zshrc $(HOME)/.zshrc
-	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
-	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
-	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
-	./scripts/bootstrap_terminal.sh
-	./scripts/mac_utils.sh -a
+backup: ## Snapshot existing dotfiles to dated .BAK copies
+	@echo "==> Backing up existing dotfiles"
+	@for f in $(HOME)/.zshrc $(HOME)/.tmux.conf.local $(HOME)/.gitconfig \
+	          $(HOME)/.gitignore $(HOME)/.config/starship.toml $(HOME)/.ssh/config; do \
+		if [ -f "$$f" ] && [ ! -L "$$f" ]; then cp "$$f" "$$f.$(DATE).BAK"; fi; \
+	done
+	@if [ -d $(HOME)/.aws ]; then cp -r $(HOME)/.aws $(HOME)/.aws.$(DATE).BAK; fi
+	@if [ -d $(HOME)/.config/nvim ] && [ ! -L $(HOME)/.config/nvim ]; then \
+		cp -r $(HOME)/.config/nvim $(HOME)/.config/nvim.$(DATE).BAK; fi
 
-# ==========================
-# Setup for Debian
-# ==========================
-# NOTE: unlike macOS (Brewfile), the terminal tools are NOT installed here.
-# Install them via the distro package manager first: apt install neovim tmux
-# fzf zoxide; starship and sesh via their official curl installers. The configs
-# and bootstrap below assume those binaries are present (bootstrap warns if not).
-debian_setup: backup
-	@$(info --->Setting up for Debian<---)
-	cp -r aws $(HOME)/.aws
-	cp -r ssh $(HOME)/.ssh
-	cp -r vim $(HOME)/.vim
-	cp .gitignore $(HOME)/.gitignore
-	cp .gitconfig $(HOME)/.gitconfig
-	@echo "--->Deploying shell + tool configs<---"
-	cp zsh_config/.zshrc $(HOME)/.zshrc
-	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
-	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
-	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
+mac_setup: ## macOS setup (PROFILE=personal|work for extra apps)
+	@echo "==> Installing Homebrew packages (PROFILE=$(PROFILE))"
+	./scripts/mac_utils.sh -i $(PROFILE)
+	@echo "==> Symlinking dotfiles via Stow"
+	./scripts/link.sh
+	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
-	@echo "--->Updating system packages (needs root)<---"
-	./scripts/debian_utils.sh -u
 
-# ==========================
-# Setup for RHEL
-# ==========================
-# NOTE: install the terminal tools first via dnf/yum (neovim tmux fzf zoxide)
-# plus starship/sesh via their curl installers — they are not installed here.
-rhel_setup: backup
-	@$(info --->Setting up for RHEL<---)
-	cp -r aws $(HOME)/.aws
-	cp -r ssh $(HOME)/.ssh
-	cp -r vim $(HOME)/.vim
-	cp .gitignore $(HOME)/.gitignore
-	cp .gitconfig $(HOME)/.gitconfig
-	@echo "--->Deploying shell + tool configs<---"
-	cp zsh_config/.zshrc $(HOME)/.zshrc
-	mkdir -p $(HOME)/.config && cp zsh_config/starship.toml $(HOME)/.config/starship.toml
-	mkdir -p $(HOME)/.config/sesh && cp zsh_config/sesh.toml $(HOME)/.config/sesh/sesh.toml
-	cp zsh_config/tmux.conf.local $(HOME)/.tmux.conf.local
-	mkdir -p $(HOME)/.config/nvim && cp -r nvim/* $(HOME)/.config/nvim/
-	@echo "--->Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim<---"
+debian_setup: ## Debian/Ubuntu setup
+	@echo "==> Installing terminal stack"
+	./scripts/debian_utils.sh -i
+	@echo "==> Symlinking dotfiles via Stow"
+	./scripts/link.sh
+	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
-	@echo "--->Updating system packages (needs root)<---"
-	./scripts/rhel_utils.sh -u
+	@echo "==> System update needs root: sudo ./scripts/debian_utils.sh -u"
 
-# ==========================
-# Setup for Windows
-# ==========================
-windows_setup: backup
-	@$(info --->Setting up for Windows<---)
-	cp -r powershell_config $(USERPROFILE)
-	PowerShell -Command "Start-Process -Verb RunAs -FilePath $(USERPROFILE)\powershell_config\windows_utils.ps1"
+rhel_setup: ## RHEL/Fedora setup
+	@echo "==> Installing terminal stack"
+	./scripts/rhel_utils.sh -i
+	@echo "==> Symlinking dotfiles via Stow"
+	./scripts/link.sh
+	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
+	./scripts/bootstrap_terminal.sh
+	@echo "==> System update needs root: sudo ./scripts/rhel_utils.sh -u"
+
+windows_setup: ## Windows setup (run from PowerShell)
+	powershell -ExecutionPolicy Bypass -File scripts/windows_utils.ps1 -Profile $(if $(PROFILE),$(PROFILE),core)
+
+lint: ## Lint shell (shellcheck), Lua (stylua), YAML (yamllint)
+	shellcheck scripts/*.sh
+	stylua --check stow/nvim/.config/nvim
+	yamllint .
+
+unlink: ## Remove the Stow symlinks from $HOME
+	stow -D --dir stow --target $(HOME) $(PACKAGES)
+
+clean: ## Remove dated .BAK / pre-stow backups from $HOME
+	@echo "==> Removing backups"
+	@find $(HOME) -maxdepth 2 -name '*.BAK' -exec rm -rf {} + 2>/dev/null || true
+	@find $(HOME) -maxdepth 3 -name '*.pre-stow.*.bak' -exec rm -rf {} + 2>/dev/null || true
