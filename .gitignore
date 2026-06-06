@@ -64,3 +64,13 @@ out/
 *.bak
 *.tmp
 *.old
+
+# Never commit real secrets or credentials #
+############################################
+**/credentials
+aws/credentials
+.secrets*
+*.secret
+secrets.sh
+# brew bundle dump snapshot (scratch; reconcile into the curated Brewfiles)
+brew/Brewfile.dump

@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: ./scripts
+
+      - name: stylua
+        uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          args: --check stow/nvim/.config/nvim
+
+      - name: yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint

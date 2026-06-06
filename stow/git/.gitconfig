@@ -1,7 +1,18 @@
+# Machine-local overrides (work identity, OS-specific credential helper, etc.).
+# Loaded first so anything below is a default the local file can override.
+# This file is never committed — create it per machine.
+[include]
+    path = ~/.gitconfig.local
+
 [user]
     name = Yash Sharma
     email = yasharma28@gmail.com
     username = yasharma28
+
+# Work repos get a different identity. Adjust the gitdir to where you keep work
+# checkouts; ~/.gitconfig-work holds the work name/email and is NOT committed.
+[includeIf "gitdir:~/work/"]
+    path = ~/.gitconfig-work
 
 [init]
     defaultBranch = main
@@ -39,7 +50,9 @@
     default = current
 
 [credential]
-    helper = store
+    # macOS Keychain — no plaintext ~/.git-credentials. On Linux, override in
+    # ~/.gitconfig.local with e.g. `helper = cache --timeout=3600` or libsecret.
+    helper = osxkeychain
 
 [rebase]
     autosquash = true

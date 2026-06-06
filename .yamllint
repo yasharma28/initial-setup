@@ -1,0 +1,16 @@
+# yamllint config for `make lint` / CI. Relaxed for GitHub Actions conventions
+# (the `on:` key, no leading ---) and the vendored oh-my-posh theme.
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    level: warning
+  document-start: disable
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+
+ignore: |
+  powershell_config/

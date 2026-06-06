@@ -1,0 +1,11 @@
+
+# type(scope): short imperative summary  (<=50 chars, no trailing period)
+#
+# Explain WHY, not WHAT — the diff shows what changed. What problem does this
+# solve? Why this approach? What are the tradeoffs? Wrap the body at 72 chars.
+#
+# Footer (optional):
+#   Resolves: TICKET-ID
+#   BREAKING CHANGE: <description>
+#
+# type = feat | fix | refactor | chore | docs | test | perf | revert
