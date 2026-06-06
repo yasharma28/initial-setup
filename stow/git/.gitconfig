@@ -1,18 +1,24 @@
-# Machine-local overrides (work identity, OS-specific credential helper, etc.).
-# Loaded first so anything below is a default the local file can override.
-# This file is never committed — create it per machine.
+# Machine-local override (always loaded if present). Use for one-off
+# machine-specific tweaks. Never committed — create per machine.
 [include]
     path = ~/.gitconfig.local
 
+# Default identity (personal). Per-tree overrides below pick the right
+# signing key + sshCommand based on which Documents/ subtree the repo is in.
 [user]
     name = Yash Sharma
     email = yasharma28@gmail.com
     username = yasharma28
 
-# Work repos get a different identity. Adjust the gitdir to where you keep work
-# checkouts; ~/.gitconfig-work holds the work name/email and is NOT committed.
-[includeIf "gitdir:~/work/"]
-    path = ~/.gitconfig-work
+# Personal repos under ~/Documents/personal/ — file provided by the
+# `git-personal` Stow overlay (make setup PROFILE=personal).
+[includeIf "gitdir:~/Documents/personal/"]
+    path = ~/.gitconfig_personal
+
+# Work repos under ~/Documents/work/ — file provided by the
+# `git-work` Stow overlay (make setup PROFILE=work).
+[includeIf "gitdir:~/Documents/work/"]
+    path = ~/.gitconfig_work
 
 [init]
     defaultBranch = main

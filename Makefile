@@ -40,33 +40,33 @@ backup: ## Snapshot existing dotfiles to dated .BAK copies
 	@if [ -d $(HOME)/.config/nvim ] && [ ! -L $(HOME)/.config/nvim ]; then \
 		cp -r $(HOME)/.config/nvim $(HOME)/.config/nvim.$(DATE).BAK; fi
 
-mac_setup: ## macOS setup (PROFILE=personal|work for extra apps)
+mac_setup: backup ## macOS setup (PROFILE=personal|work for extra apps)
 	@echo "==> Installing Homebrew packages (PROFILE=$(PROFILE))"
 	./scripts/mac_utils.sh -i $(PROFILE)
-	@echo "==> Symlinking dotfiles via Stow"
-	./scripts/link.sh
+	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
+	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
 	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
 
-debian_setup: ## Debian/Ubuntu setup
+debian_setup: backup ## Debian/Ubuntu setup
 	@echo "==> Installing terminal stack"
 	./scripts/debian_utils.sh -i
-	@echo "==> Symlinking dotfiles via Stow"
-	./scripts/link.sh
+	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
+	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
 	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
 	@echo "==> System update needs root: sudo ./scripts/debian_utils.sh -u"
 
-rhel_setup: ## RHEL/Fedora setup
+rhel_setup: backup ## RHEL/Fedora setup
 	@echo "==> Installing terminal stack"
 	./scripts/rhel_utils.sh -i
-	@echo "==> Symlinking dotfiles via Stow"
-	./scripts/link.sh
+	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
+	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
 	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
 	@echo "==> System update needs root: sudo ./scripts/rhel_utils.sh -u"
 
-windows_setup: ## Windows setup (run from PowerShell)
+windows_setup: backup ## Windows setup (run from PowerShell)
 	powershell -ExecutionPolicy Bypass -File scripts/windows_utils.ps1 -Profile $(if $(PROFILE),$(PROFILE),core)
 
 lint: ## Lint shell (shellcheck), Lua (stylua), YAML (yamllint)
@@ -74,8 +74,13 @@ lint: ## Lint shell (shellcheck), Lua (stylua), YAML (yamllint)
 	stylua --check stow/nvim/.config/nvim
 	yamllint .
 
-unlink: ## Remove the Stow symlinks from $HOME
+unlink: ## Remove the Stow symlinks from $HOME (include PROFILE= overlays)
 	stow -D --dir stow --target $(HOME) $(PACKAGES)
+	@if [ -n "$(PROFILE)" ]; then \
+		for o in zsh-$(PROFILE) git-$(PROFILE) ssh-$(PROFILE); do \
+			[ -d stow/$$o ] && stow -D --dir stow --target $(HOME) $$o || true; \
+		done; \
+	fi
 
 clean: ## Remove dated .BAK / pre-stow backups from $HOME
 	@echo "==> Removing backups"

@@ -1,0 +1,13 @@
+# == .gitconfig_work ==
+# Work identity overlay — sourced by ~/.gitconfig via includeIf for repos
+# under ~/Documents/work/. Provides work signing key + sshCommand.
+# Stowed by the `git-work` package (make setup PROFILE=work).
+
+[user]
+    name = Yash Sharma
+    email = yash@giantanalytics.ai
+    username = yash
+    signingkey = E996AD2ACDC589CC7B92010D3C2A0E665250C6A1
+
+[core]
+    sshCommand = ssh -i ~/.ssh/id_ed25519_giantanalytics -o IdentitiesOnly=yes

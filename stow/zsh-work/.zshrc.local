@@ -1,0 +1,9 @@
+# == .zshrc.local (work) ==
+# Work-only shell tweaks. Sourced from ~/.zshrc near the end, before
+# ~/.secrets.sh. Stowed by the `zsh-work` package (make setup PROFILE=work).
+
+# Work AWS SSO profile shortcuts — fill in once work profiles are configured.
+# alias aws-sso-staging="aws-sso staging"
+# alias aws-sso-prod="aws-sso prod"
+
+# Work-only PATH additions, internal-tool env vars, etc. — add below.

@@ -174,6 +174,14 @@ aws-profiles() {
 # See stow/zsh/secrets.example.sh for the template.
 
 #========================================================
+# PROFILE-SPECIFIC OVERLAY
+#========================================================
+# Personal/work-only aliases, functions, and env. File is dropped in by the
+# zsh-personal or zsh-work Stow overlay (make setup PROFILE=personal|work).
+# Loaded BEFORE secrets so anything inside can be overridden by ~/.secrets.sh.
+[[ -f "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"
+
+#========================================================
 # SECURITY & SECRETS
 #========================================================
 # Import secrets (load last to allow overrides)

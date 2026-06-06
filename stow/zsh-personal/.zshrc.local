@@ -1,0 +1,15 @@
+# == .zshrc.local (personal) ==
+# Personal-only shell tweaks. Sourced from ~/.zshrc near the end, before
+# ~/.secrets.sh — overrides in secrets still win. Stowed by the `zsh-personal`
+# package (make setup PROFILE=personal).
+
+# Personal AWS SSO profile shortcuts — the names below come from
+# ~/.aws/config; rename to match your actual profiles.
+alias aws-sso-dev="aws-sso dev"
+alias aws-sso-cicd="aws-sso cicd"
+alias aws-sso-prd="aws-sso prd"
+
+# Personal-machine Homebrew-cask layout: HOMEBREW_CASK_OPTS may want a
+# different appdir for personal use. Uncomment and edit if you keep a
+# non-standard ~/homebrew layout on personal.
+# export HOMEBREW_CASK_OPTS="--appdir=${HOME}/Applications"
