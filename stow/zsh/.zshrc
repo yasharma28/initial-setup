@@ -77,7 +77,10 @@ export PATH
 
 # Homebrew Settings (HOMEBREW_PREFIX is detected at the top of this file)
 export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
-export HOMEBREW_BUNDLE_FILE="${HOME}/.brew/Brewfile"
+# Default Brewfile for a bare `brew bundle`. The setup Makefile passes --file
+# explicitly, so this only matters for ad-hoc use; set DOTFILES to your repo
+# checkout in ~/.secrets.sh to enable it.
+[[ -n "${DOTFILES:-}" ]] && export HOMEBREW_BUNDLE_FILE="${DOTFILES}/brew/Brewfile"
 export HOMEBREW_NO_ENV_HINTS=1
 
 # Reuse HOMEBREW_PREFIX (set above) instead of spawning `brew --prefix` per shell
@@ -121,7 +124,9 @@ fi
 #========================================================
 # Environment variables
 export RIPGREP_CONFIG_PATH="${HOME}/.ripgrep"
-export VAULT_ADDR="https://usa1r.vault.stage.pdce.io/"
+# VAULT_ADDR and other environment-specific endpoints are machine-private and
+# differ between personal/work laptops — set them in ~/.secrets.sh (sourced at
+# the end of this file), never in this committed, public config.
 
 # direnv hook (if available)
 if command -v direnv &> /dev/null; then
@@ -163,29 +168,10 @@ aws-profiles() {
     grep '\[profile' ~/.aws/config | sed 's/\[profile \(.*\)\]/\1/'
 }
 
-# IAM role injector path
-_IAM_INJECTOR="${HOME}/Documents/github_earth_dimension_c132/devops/iam-role-injector/meta_assume.sh"
-
-# IAM role assume function - usage: assume <role>
-assume() {
-  local role="${1:?Usage: assume <role-name>}"
-  if [[ -f "$_IAM_INJECTOR" ]]; then
-    source "$_IAM_INJECTOR" "$role"
-  else
-    echo "Error: IAM injector not found at $_IAM_INJECTOR" >&2
-    return 1
-  fi
-}
-
-# Short aliases for frequently used roles (optional convenience)
-alias dev='assume dev'
-alias pci-dev='assume pcidev'
-alias staging='assume staging'
-alias pci-staging='assume pcistaging'
-alias prd='assume prd'
-alias pci-prd='assume pciprod'
-alias devops='assume ops_devops'
-alias hashi-ops='assume hashi'
+# Role-assumption helpers (the `assume` function + per-role aliases) depend on an
+# org-internal injector tool and use private role names, so they're machine-private:
+# define them in ~/.secrets.sh (sourced below), not in this public file.
+# See stow/zsh/secrets.example.sh for the template.
 
 #========================================================
 # SECURITY & SECRETS
@@ -193,9 +179,6 @@ alias hashi-ops='assume hashi'
 # Import secrets (load last to allow overrides)
 [[ -f "${HOME}/.secrets.sh" ]] && source "${HOME}/.secrets.sh"
 [[ -f "${HOME}/.secrets.txt" ]] && source "${HOME}/.secrets.txt"
-
-# Added by codebase-memory-mcp install
-export PATH="/Users/ysharma/.local/bin:$PATH"
 
 #========================================================
 # PROMPT (Starship)

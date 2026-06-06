@@ -1,0 +1,33 @@
+{
+	"$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
+	"Sources" :
+	[
+		{
+			"Packages" :
+			[
+				{ "PackageIdentifier" : "AgileBits.1Password" },
+				{ "PackageIdentifier" : "Notion.Notion" },
+				{ "PackageIdentifier" : "Discord.Discord" },
+				{ "PackageIdentifier" : "Zoom.Zoom" },
+				{ "PackageIdentifier" : "Obsidian.Obsidian" },
+				{ "PackageIdentifier" : "VideoLAN.VLC" },
+				{ "PackageIdentifier" : "Valve.Steam" },
+				{ "PackageIdentifier" : "Balena.Etcher" },
+				{ "PackageIdentifier" : "darktable.darktable" },
+				{ "PackageIdentifier" : "evernote.evernote" },
+				{ "PackageIdentifier" : "Appest.TickTick" },
+				{ "PackageIdentifier" : "Adobe.Acrobat.Reader.64-bit" },
+				{ "PackageIdentifier" : "Nvidia.GeForceExperience" },
+				{ "PackageIdentifier" : "Nvidia.PhysX" }
+			],
+			"SourceDetails" :
+			{
+				"Argument" : "https://cdn.winget.microsoft.com/cache",
+				"Identifier" : "Microsoft.Winget.Source_8wekyb3d8bbwe",
+				"Name" : "winget",
+				"Type" : "Microsoft.PreIndexed.Package"
+			}
+		}
+	],
+	"WinGetVersion" : "1.5.2201"
+}

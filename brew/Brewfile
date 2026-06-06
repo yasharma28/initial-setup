@@ -1,42 +1,45 @@
-# == Brewfile ==
-# Homebrew packages for a fresh machine, installed via `brew bundle`.
-# The terminal stack is grouped first; GUI apps and VS Code extensions follow.
+# == Brewfile (core) ==
+# Always-installed base: terminal stack, DevOps CLIs, fonts, dev apps, VS Code
+# extensions. Profile-specific extras live in Brewfile.personal / Brewfile.work
+# and are layered on via `make mac_setup PROFILE=personal|work`.
+# Formulae are intentionally unpinned — latest is desired for dev tooling
+# (see the hermetic exception in plan.md).
 
 tap "homebrew/bundle"
-tap "null-dev/firefox-profile-switcher"
+tap "hashicorp/tap"
 
 # --- Terminal stack ---
-# Prompt migrated off powerlevel10k -> starship. fzf+zoxide feed the sesh picker.
 brew "coreutils"
 brew "fzf"               # fuzzy finder — sesh picker, Ctrl-R history, Ctrl-T files
 brew "neovim"
 brew "sesh"              # tmux session manager / project switcher
-brew "starship"          # prompt (replaces powerlevel10k)
+brew "starship"          # prompt
+brew "stow"              # GNU Stow — symlinks the per-tool dotfile packages
 brew "tmux"
 brew "tree-sitter-cli"   # compiles nvim treesitter parsers (main branch needs it)
 brew "zoxide"            # smart dir jumping; records dirs to seed sesh
 
-brew "null-dev/firefox-profile-switcher/firefox-profile-switcher-connector"
+# --- DevOps CLIs (the shell config in stow/zsh/.zshrc assumes these exist) ---
+brew "awscli"
+brew "direnv"
+brew "hashicorp/tap/terraform"
+brew "hashicorp/tap/vault"
+brew "jq"
+brew "krew"              # kubectl plugin manager (KREW_ROOT in .zshrc)
+brew "kubectx"           # provides kubectx + kubens
+brew "kubernetes-cli"    # kubectl
+brew "ripgrep"           # rg; RIPGREP_CONFIG_PATH in .zshrc
+cask "google-cloud-sdk"  # gcloud (cask; formula deprecated)
 
 # --- Fonts ---
 # Complete Meslo Nerd Font. Set iTerm's profile font to "MesloLGS Nerd Font Mono"
 # (NOT the minimal "MesloLGS NF" — it lacks the glyphs which-key/Starship use).
 cask "font-meslo-lg-nerd-font"
 
-# --- GUI apps ---
-cask "1password"
-cask "authy"
-cask "balenaetcher"
-cask "discord"
+# --- Dev apps ---
 cask "docker"
-cask "firefox"
-cask "iina"
-cask "microsoft-auto-update"
-cask "microsoft-office"
 cask "rectangle"
 cask "visual-studio-code"
-cask "whatsapp"
-cask "zoom"
 
 # --- VS Code extensions ---
 vscode "dbaeumer.vscode-eslint"

@@ -1,0 +1,8 @@
+# == Brewfile.work ==
+# Work-laptop extras, layered on the core Brewfile via
+# `make mac_setup PROFILE=work`. Stub — add work-only tools here so they stay
+# out of the public core Brewfile. Avoid committing employer-internal taps or
+# anything sensitive; keep those in a machine-local file if needed.
+
+# cask "slack"
+# cask "google-chrome"

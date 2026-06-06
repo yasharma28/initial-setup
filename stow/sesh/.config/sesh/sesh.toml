@@ -1,7 +1,7 @@
 # == sesh ==
 # Smart tmux session manager / project switcher. Day-to-day, project repos are
-# discovered via zoxide (seeded from repo roots under
-# ~/Documents/github_earth_dimension_c132, and kept fresh as you cd into them).
+# discovered via zoxide (seeded from your project repo roots, and kept fresh as
+# you cd into them).
 # Pin always-available sessions with [[session]] blocks below.
 # Docs: https://github.com/joshmedeski/sesh
 
