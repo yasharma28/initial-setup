@@ -72,14 +72,22 @@ path=(
   "${KREW_ROOT:-$HOME/.krew}/bin"
   $path
 )
+# Under the no-sudo Homebrew layout, cask apps live at $HOMEBREW_PREFIX/apps/...
+# so their bundled CLIs (Obsidian, etc.) need an explicit PATH entry. On the
+# standard /opt/homebrew prefix, /Applications-installed apps don't need this.
+if [[ "${HOMEBREW_PREFIX}" == "${HOME}/homebrew" ]]; then
+  path+=("${HOMEBREW_PREFIX}/apps/Obsidian.app/Contents/MacOS")
+fi
 export PATH
 
 # Homebrew Settings (HOMEBREW_PREFIX is detected at the top of this file).
-# No HOMEBREW_CASK_OPTS override — casks land in /Applications by default,
-# so apps show up in Spotlight / Launchpad / Finder as expected. If you ever
-# switch to the no-sudo ~/homebrew layout, set:
-#   export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
-# in ~/.secrets.sh and add the per-app PATH entries you need below.
+# Cask appdir override: only when running the no-sudo home-prefix install
+# (work machine, where /Applications + Cellar in /opt/homebrew are blocked).
+# On the standard /opt/homebrew or /usr/local prefix, do nothing so casks
+# land in /Applications and apps show up in Spotlight / Launchpad / Finder.
+if [[ "${HOMEBREW_PREFIX}" == "${HOME}/homebrew" ]]; then
+  export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
+fi
 # Default Brewfile for a bare `brew bundle`. The setup Makefile passes --file
 # explicitly, so this only matters for ad-hoc use; set DOTFILES to your repo
 # checkout in ~/.secrets.sh to enable it.
