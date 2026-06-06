@@ -440,6 +440,22 @@ tmux_conf_uninstall_plugins_on_reload=true
 #set -g @plugin 'tmux-plugins/tmux-cpu'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
+
+# Initialize tpm — must come AFTER the @plugin declarations above.
+#
+# The upstream "/!\ do not add" comments above assume gpakosz/.tmux's
+# __apply_plugins() function is active (it handles tpm clone + load itself).
+# In the framework version pinned by bootstrap_terminal.sh, that function
+# exists only in commented-out template form (verify: grep -cE '^[^#]*tpm'
+# ~/.tmux/.tmux.conf should return 0). With the framework doing nothing,
+# tpm is never sourced and TMUX_PLUGIN_MANAGER_PATH is never set, so
+# `tpm/bin/install_plugins` aborts.
+#
+# If you later update gpakosz and they reactivate __apply_plugins, REMOVE
+# the `run` line below — otherwise tpm gets loaded twice.
+if "test ! -d ~/.tmux/plugins/tpm" \
+   "run 'git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm && ~/.tmux/plugins/tpm/bin/install_plugins'"
+run '~/.tmux/plugins/tpm/tpm'
 # resurrect: also save/restore each pane's scrollback contents
 set -g @resurrect-capture-pane-contents 'on'
 # continuum: auto-save every 15 min and auto-restore sessions when the tmux

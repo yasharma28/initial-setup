@@ -37,8 +37,11 @@ backup: ## Snapshot existing dotfiles to dated .BAK copies
 		if [ -f "$$f" ] && [ ! -L "$$f" ]; then cp "$$f" "$$f.$(DATE).BAK"; fi; \
 	done
 	@if [ -d $(HOME)/.aws ]; then cp -r $(HOME)/.aws $(HOME)/.aws.$(DATE).BAK; fi
+	@# nvim: must MOVE (not cp) so the new lazy.nvim stow tree lands on a
+	@# clean dir. Old packer-era files under after/plugin/ would otherwise
+	@# auto-source on startup and conflict with lazy's plugin specs.
 	@if [ -d $(HOME)/.config/nvim ] && [ ! -L $(HOME)/.config/nvim ]; then \
-		cp -r $(HOME)/.config/nvim $(HOME)/.config/nvim.$(DATE).BAK; fi
+		mv $(HOME)/.config/nvim $(HOME)/.config/nvim.$(DATE).BAK; fi
 
 mac_setup: backup ## macOS setup (PROFILE=personal|work for extra apps)
 	@echo "==> Installing Homebrew packages (PROFILE=$(PROFILE))"

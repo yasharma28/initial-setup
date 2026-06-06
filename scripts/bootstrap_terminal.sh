@@ -42,7 +42,14 @@ install_gpakosz_tmux() {
     log "cloning gpakosz/.tmux"
     git clone https://github.com/gpakosz/.tmux.git "${TMUX_DIR}"
   else
-    log "gpakosz/.tmux already present"
+    # Always fast-forward to upstream. The framework file (.tmux.conf) is
+    # never edited locally — only .tmux.conf.local is, and that's stowed
+    # from this repo — so --ff-only is safe and a divergence is a real
+    # problem (likely manual edit) the user should see, not auto-resolve.
+    log "updating gpakosz/.tmux (git pull --ff-only)"
+    if ! git -C "${TMUX_DIR}" pull --ff-only --quiet; then
+      warn "gpakosz/.tmux pull failed (local changes or non-FF remote?) — skipping update"
+    fi
   fi
   # ~/.tmux.conf must symlink to the framework; our edits live in .tmux.conf.local.
   ln -sf "${TMUX_DIR}/.tmux.conf" "${HOME}/.tmux.conf"

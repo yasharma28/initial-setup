@@ -26,7 +26,6 @@ brew "tmux"
 brew "tree-sitter-cli"   # compiles nvim treesitter parsers (main branch needs it)
 brew "vim"
 brew "zoxide"            # smart dir jumping; records dirs to seed sesh
-brew "powerlevel10k"     # zsh prompt (kept for parity with previous setups)
 
 # --- Shell / general CLI ---
 brew "direnv"

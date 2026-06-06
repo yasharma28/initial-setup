@@ -70,13 +70,16 @@ path=(
   "${HOMEBREW_PREFIX}/bin"
   "${HOMEBREW_PREFIX}/sbin"
   "${KREW_ROOT:-$HOME/.krew}/bin"
-  "${HOMEBREW_PREFIX}/apps/Obsidian.app/Contents/MacOS"  # Obsidian CLI (moved from .zprofile)
   $path
 )
 export PATH
 
-# Homebrew Settings (HOMEBREW_PREFIX is detected at the top of this file)
-export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
+# Homebrew Settings (HOMEBREW_PREFIX is detected at the top of this file).
+# No HOMEBREW_CASK_OPTS override — casks land in /Applications by default,
+# so apps show up in Spotlight / Launchpad / Finder as expected. If you ever
+# switch to the no-sudo ~/homebrew layout, set:
+#   export HOMEBREW_CASK_OPTS="--appdir=${HOMEBREW_PREFIX}/apps --caskroom=${HOMEBREW_PREFIX}/caskroom"
+# in ~/.secrets.sh and add the per-app PATH entries you need below.
 # Default Brewfile for a bare `brew bundle`. The setup Makefile passes --file
 # explicitly, so this only matters for ad-hoc use; set DOTFILES to your repo
 # checkout in ~/.secrets.sh to enable it.
@@ -88,11 +91,30 @@ export BREW_PREFIX="${HOMEBREW_PREFIX}"
 export CPPFLAGS="-I${BREW_PREFIX}/include"
 export LDFLAGS="-L${BREW_PREFIX}/lib"
 
-# NVM Settings
+# NVM Settings — kept for projects pinned to NVM-installed node versions.
+# mise (below) is the preferred polyglot manager going forward.
 export NVM_DIR="${HOME}/.nvm"
 if [[ -d "${NVM_DIR}" ]]; then
   source "${NVM_DIR}/nvm.sh" --no-use  # Lazy loading for faster shell startup
   [[ -s "${NVM_DIR}/bash_completion" ]] && source "${NVM_DIR}/bash_completion"
+fi
+
+#========================================================
+# LANGUAGE VERSION MANAGERS
+#========================================================
+# mise — polyglot runtime version manager (go, node, python, etc.). Activate
+# only if the binary is present; the core Brewfile installs it.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
+# pyenv — Python version manager. Set PYENV_ROOT first because `pyenv init -`
+# emits code that references it; gate on the binary so a missing pyenv
+# (e.g. fresh Linux without it) doesn't break startup.
+export PYENV_ROOT="${HOME}/.pyenv"
+if command -v pyenv &>/dev/null; then
+  [[ -d "${PYENV_ROOT}/bin" ]] && path=("${PYENV_ROOT}/bin" $path)
+  eval "$(pyenv init - zsh)"
 fi
 
 #========================================================
