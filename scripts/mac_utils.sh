@@ -77,7 +77,13 @@ clean_homebrew() {
 
 docker_cleanup() {
   command -v docker &>/dev/null || { err "docker not installed"; return 1; }
-  log "stopping containers + pruning Docker"
+  log "stopping docker compose services (if any in cwd)"
+  docker compose down 2>/dev/null || true
+  log "pruning buildx caches"
+  docker buildx prune -a -f || err "buildx prune returned non-zero"
+  log "removing 'multiarch' buildx builder (if present)"
+  docker buildx rm multiarch 2>/dev/null || true
+  log "stopping containers + pruning Docker system"
   docker ps -aq | xargs -r docker stop || true
   docker system prune -a -f --volumes || err "docker prune returned non-zero"
 }
