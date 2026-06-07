@@ -35,11 +35,20 @@ vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz", { desc = "Loclist next" })
 vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz", { desc = "Loclist prev" })
 
 -- Rename the word under the cursor across the file (interactive)
-vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
-    { desc = "Replace word under cursor" })
+vim.keymap.set(
+    "n",
+    "<leader>s",
+    [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]],
+    { desc = "Replace word under cursor" }
+)
 
 -- Make the current file executable
-vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "chmod +x current file" })
+vim.keymap.set(
+    "n",
+    "<leader>x",
+    "<cmd>!chmod +x %<CR>",
+    { silent = true, desc = "chmod +x current file" }
+)
 
 -- Re-source the current file for quick config iteration. Guarded on filetype
 -- because `:source` on a non-script buffer (e.g. a .tutor or markdown file)

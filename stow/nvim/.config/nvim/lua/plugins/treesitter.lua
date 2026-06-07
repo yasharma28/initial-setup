@@ -17,9 +17,25 @@ return {
         -- inline spans, and a missing/mismatched inline parser is what crashed
         -- the highlighter on markdown previews.
         require("nvim-treesitter").install({
-            "bash", "c", "cpp", "dockerfile", "go", "hcl", "javascript",
-            "json", "lua", "make", "markdown", "markdown_inline", "python",
-            "rust", "terraform", "typescript", "vim", "vimdoc", "yaml",
+            "bash",
+            "c",
+            "cpp",
+            "dockerfile",
+            "go",
+            "hcl",
+            "javascript",
+            "json",
+            "lua",
+            "make",
+            "markdown",
+            "markdown_inline",
+            "python",
+            "rust",
+            "terraform",
+            "typescript",
+            "vim",
+            "vimdoc",
+            "yaml",
         })
 
         -- Start treesitter per buffer, but only when a parser for that filetype
