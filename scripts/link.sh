@@ -14,14 +14,14 @@ readonly SCRIPT_DIR REPO_ROOT BACKUP_SUFFIX
 readonly STOW_DIR="${REPO_ROOT}/stow"
 readonly TARGET="${HOME}"
 readonly DEFAULT_PACKAGES=(zsh tmux starship sesh nvim vim git ssh)
-# Packages that have a per-profile overlay variant in stow/<pkg>-<profile>/.
-# When --profile is given, each name here is suffixed and stowed after the base.
+# Overlay packages aren't enumerated here: when --profile <name> is given,
+# every stow/*-<name>/ dir is discovered at run-time and stowed after the
+# base set. Adding a new overlay-capable tool (or a new profile entirely)
+# is purely a matter of creating its directory under stow/.
 #
-# Note `aws` is here but NOT in DEFAULT_PACKAGES: the base stow/aws package
-# only ships a config.example template (never stowed). The real ~/.aws/config
-# lives at stow/aws-personal/.aws/config and is gitignored — see .gitignore
-# and the AWS section of docs/ for the per-machine setup.
-readonly PROFILE_OVERLAYS=(zsh git ssh aws)
+# Note `aws` has NO base package symlinked: stow/aws/.aws/config.example is
+# a reference only. The real ~/.aws/config comes from the overlay
+# (stow/aws-personal/.aws/config, gitignored — see .gitignore).
 
 # DRY_RUN=1 enables preview mode — no backups moved, no symlinks created.
 # Useful before first run on a populated $HOME to see what will be touched.
@@ -129,12 +129,23 @@ usage() {
 Usage: ${0##*/} [OPTIONS] [PACKAGES...]
 
   -n, --dry-run            Preview backups + stow actions; touch nothing.
-  -p, --profile <name>     Also stow overlay packages (zsh-<name>, git-<name>,
-                           ssh-<name>) after the base set. Valid: personal, work.
+  -p, --profile <name>     Also stow overlay packages named <pkg>-<name>
+                           (e.g. zsh-personal, git-work) after the base set.
+                           Any <name> with at least one overlay dir under
+                           ${STOW_DIR##*/}/ is accepted.
   -h, --help               Show this help.
 
 PACKAGES default to: ${DEFAULT_PACKAGES[*]}
 EOF
+}
+
+# A profile is "known" if at least one stow/*-<profile>/ directory exists.
+# This replaces a hardcoded personal|work allowlist: adding a new profile
+# is now solely a matter of creating its overlay packages, with no editing
+# of the validator. Empty result -> profile is unknown.
+list_overlays_for_profile() {
+  local profile="$1"
+  compgen -G "${STOW_DIR}/*-${profile}" 2>/dev/null || true
 }
 
 main() {
@@ -156,22 +167,22 @@ main() {
     packages=("${DEFAULT_PACKAGES[@]}")
   fi
 
-  # Append profile overlays (e.g. zsh-personal, git-personal, ssh-personal) if
-  # PROFILE was set. Skip any overlay package directory that doesn't exist —
-  # the work overlay may not be populated yet.
+  # Append profile overlays (e.g. zsh-personal, git-personal, ssh-personal,
+  # aws-personal) if PROFILE was set. Profile validity is discovered from the
+  # filesystem — any name with at least one stow/*-<profile>/ directory is
+  # accepted. Adding a new profile is purely a matter of creating its overlay
+  # directories; this script does not need to be edited.
   if [[ -n "${PROFILE}" ]]; then
-    case "${PROFILE}" in
-      personal|work) : ;;
-      *) err "unknown PROFILE '${PROFILE}' (valid: personal, work)"; exit "${EXIT_USAGE}" ;;
-    esac
-    for base in "${PROFILE_OVERLAYS[@]}"; do
-      local overlay="${base}-${PROFILE}"
-      if [[ -d "${STOW_DIR}/${overlay}" ]]; then
-        packages+=("${overlay}")
-      else
-        log "no overlay package '${overlay}' — skipping"
-      fi
-    done
+    local discovered
+    discovered=$(list_overlays_for_profile "${PROFILE}")
+    if [[ -z "${discovered}" ]]; then
+      err "no overlay packages found under ${STOW_DIR##*/}/*-${PROFILE}/"
+      err "  create at least one overlay dir (e.g. stow/zsh-${PROFILE}/) first."
+      exit "${EXIT_USAGE}"
+    fi
+    while IFS= read -r overlay_path; do
+      packages+=("${overlay_path##*/}")
+    done <<< "${discovered}"
   fi
 
   [[ "${DRY_RUN}" == "1" ]] && log "DRY-RUN MODE — no files will be moved or symlinked"

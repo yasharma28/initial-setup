@@ -1,3 +1,26 @@
+# BEGIN_HEADER
+########################################################################
+# DESCRIPTION:
+#   This Makefile manages environment setup (e.g., macOS, Debian, RHEL, Windows).
+#   It handles:
+#     - File backups
+#     - OS detection
+#     - Per-platform configuration installs
+#
+# Best Practices:
+#   - Use `make help` to see available targets and their usage
+#   - Run `make all` (default) to detect OS and perform setup
+#   - Perform backups via `make backup` before changes
+#   - Update this header block when making significant changes
+#
+# Author: Yash Sharma
+# Version: 1.0.0
+# Last Updated: March 2025
+# Maintainer: Yash Sharma
+########################################################################
+# END_HEADER
+
+SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 # OS detection + a timestamp for backups.
@@ -43,30 +66,33 @@ backup: ## Snapshot existing dotfiles to dated .BAK copies
 	@if [ -d $(HOME)/.config/nvim ] && [ ! -L $(HOME)/.config/nvim ]; then \
 		mv $(HOME)/.config/nvim $(HOME)/.config/nvim.$(DATE).BAK; fi
 
-mac_setup: backup ## macOS setup (PROFILE=personal|work for extra apps)
-	@echo "==> Installing Homebrew packages (PROFILE=$(PROFILE))"
-	./scripts/mac_utils.sh -i $(PROFILE)
+# Shared post-install steps for every per-OS setup target. Args:
+#   $(1) is currently unused — kept positional in case a future OS needs to
+#        pass extra context (architecture, distro variant) into bootstrap.
+# Single source of truth for "stow dotfiles + bootstrap terminal stack",
+# so adding an OS only adds the package-install line, not the boilerplate.
+define stow_and_bootstrap
 	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
 	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
 	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
 	./scripts/bootstrap_terminal.sh
+endef
+
+mac_setup: backup ## macOS setup (PROFILE=personal|work for extra apps)
+	@echo "==> Installing Homebrew packages (PROFILE=$(PROFILE))"
+	./scripts/mac_utils.sh -i $(PROFILE)
+	$(call stow_and_bootstrap)
 
 debian_setup: backup ## Debian/Ubuntu setup
 	@echo "==> Installing terminal stack"
 	./scripts/debian_utils.sh -i
-	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
-	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
-	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
-	./scripts/bootstrap_terminal.sh
+	$(call stow_and_bootstrap)
 	@echo "==> System update needs root: sudo ./scripts/debian_utils.sh -u"
 
 rhel_setup: backup ## RHEL/Fedora setup
 	@echo "==> Installing terminal stack"
 	./scripts/rhel_utils.sh -i
-	@echo "==> Symlinking dotfiles via Stow (PROFILE=$(PROFILE))"
-	./scripts/link.sh $(if $(PROFILE),--profile $(PROFILE),)
-	@echo "==> Bootstrapping oh-my-zsh, gpakosz tmux, tpm, nvim"
-	./scripts/bootstrap_terminal.sh
+	$(call stow_and_bootstrap)
 	@echo "==> System update needs root: sudo ./scripts/rhel_utils.sh -u"
 
 windows_setup: backup ## Windows setup (run from PowerShell)
@@ -79,9 +105,12 @@ lint: ## Lint shell (shellcheck), Lua (stylua), YAML (yamllint)
 
 unlink: ## Remove the Stow symlinks from $HOME (include PROFILE= overlays)
 	stow -D --dir stow --target $(HOME) $(PACKAGES)
+	@# Overlay teardown is discovery-driven (mirrors link.sh): every
+	@# stow/*-$(PROFILE)/ that exists gets unstowed. Adding new overlay-capable
+	@# tools or new profiles requires no edits here.
 	@if [ -n "$(PROFILE)" ]; then \
-		for o in zsh-$(PROFILE) git-$(PROFILE) ssh-$(PROFILE); do \
-			[ -d stow/$$o ] && stow -D --dir stow --target $(HOME) $$o || true; \
+		for d in stow/*-$(PROFILE); do \
+			[ -d "$$d" ] && stow -D --dir stow --target $(HOME) "$${d##*/}" || true; \
 		done; \
 	fi
 
