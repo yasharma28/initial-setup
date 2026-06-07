@@ -37,6 +37,16 @@ return {
                 map("n", "<leader>vrr", vim.lsp.buf.references, "References")
                 map("n", "<leader>vrn", vim.lsp.buf.rename, "Rename symbol")
                 map("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
+                -- On-demand format. Trailing-whitespace strip is autocmd-on-save
+                -- (see lua/config/autocmds.lua), so these keymaps are pure
+                -- LSP format. Two bindings preserve muscle memory from the
+                -- pre-refactor config.
+                map("n", "<leader>f", function()
+                    vim.lsp.buf.format()
+                end, "Format buffer (LSP)")
+                map("n", "<leader>t", function()
+                    vim.lsp.buf.format()
+                end, "Format buffer (LSP)")
             end,
         })
 
