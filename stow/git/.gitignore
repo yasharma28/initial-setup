@@ -13,3 +13,10 @@ Icon?
 .vscode/
 *.sublime-project
 *.sublime-workspace
+
+# AI coding assistants — per-repo session/transcript/agent data, never code.
+# Anthropic Claude Code drops .claude/ in every repo it operates on; aider
+# uses .aider.* tags. Both belong in user-level ignore so no repo has to
+# remember to add them.
+.claude/
+.aider*

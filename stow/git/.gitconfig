@@ -27,7 +27,7 @@
     editor = nvim
     whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
     pager = less
-    excludesFile = ${HOME}/.gitignore
+    excludesFile = ~/.gitignore
 
 [alias]
     co = checkout
@@ -102,7 +102,7 @@
     rebase = true
 
 [commit]
-    template = ${HOME}/.gitmessage.txt
+    template = ~/.gitmessage.txt
 
 [rerere]
     enabled = true
