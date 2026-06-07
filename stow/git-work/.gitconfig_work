@@ -11,3 +11,14 @@
 
 [core]
     sshCommand = ssh -i ~/.ssh/id_ed25519_giantanalytics -o IdentitiesOnly=yes
+
+# GPG signing for work repos. Same rationale as the personal overlay; gpg.program
+# points at the no-sudo $HOME/homebrew prefix used on the work mac.
+[commit]
+    gpgsign = true
+
+[tag]
+    gpgsign = true
+
+[gpg]
+    program = ~/homebrew/bin/gpg

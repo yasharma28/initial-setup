@@ -13,3 +13,19 @@
 # offering the work key first and getting blocked by GitHub.
 [core]
     sshCommand = ssh -i ~/.ssh/ed25519_github -o IdentitiesOnly=yes
+
+# GPG signing for personal repos. Lives in the overlay (not the base config)
+# because gpgsign without a configured `signingkey` aborts every commit —
+# and `signingkey` is only set above when this overlay is stowed.
+[commit]
+    gpgsign = true
+
+[tag]
+    gpgsign = true
+
+# Point at brew's gpg explicitly so pinentry-mac handles the passphrase
+# prompt (the macOS-bundled gpg defaults to a terminal pinentry that won't
+# launch the GUI dialog). Path is the /opt/homebrew prefix — for the no-sudo
+# work install, the git-work overlay will set this to ~/homebrew/bin/gpg.
+[gpg]
+    program = /opt/homebrew/bin/gpg

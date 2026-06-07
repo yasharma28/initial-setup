@@ -39,6 +39,13 @@
     amend = commit --amend --no-edit
     save = "!git add -A && git commit -m 'WIP'"
     unstage = reset HEAD --
+    # Bulk-delete every local branch except main/master and the current one.
+    # Useful after merging a batch of PRs; -D so it works for un-pushed work too.
+    cb = "!git branch | grep -v -E \"^\\\\*|main|master\" | xargs git branch -D"
+    # Soft-undo the last commit, keeping its changes staged. Pairs with `amend`.
+    uncommit = reset --soft HEAD^
+    # Nuclear: discard ALL working-tree changes + untracked files. Use with care.
+    undo = "!git reset --hard HEAD && git clean -fd"
 
 [diff]
     tool = nvimdiff
@@ -59,6 +66,21 @@
     # macOS Keychain — no plaintext ~/.git-credentials. On Linux, override in
     # ~/.gitconfig.local with e.g. `helper = cache --timeout=3600` or libsecret.
     helper = osxkeychain
+
+# Per-host credential helpers: route github.com + gist.github.com through
+# `gh auth git-credential` so OAuth tokens (with PAT scopes) are reused
+# automatically. Empty `helper =` line first CLEARS any inherited helper for
+# that host, so only `gh auth` answers. This matches what `gh auth setup-git`
+# would write, made portable: brew installs gh at $HOMEBREW_PREFIX/bin/gh,
+# which is on PATH for any interactive shell. On Linux without brew, change
+# the path or remove these blocks in ~/.gitconfig.local.
+[credential "https://github.com"]
+    helper =
+    helper = !/opt/homebrew/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper =
+    helper = !/opt/homebrew/bin/gh auth git-credential
 
 [rebase]
     autosquash = true
