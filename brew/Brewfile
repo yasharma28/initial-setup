@@ -1,34 +1,147 @@
+# == Brewfile (core) ==
+# Always-installed base for any dev machine (work or personal): terminal stack,
+# language toolchains, DevOps CLIs, container runtimes, fonts, IDEs, VS Code
+# extensions. Profile-specific extras (comms apps, personal browsers, photo
+# tools) live in Brewfile.personal / Brewfile.work and are layered on via
+# `make mac_setup PROFILE=personal|work`.
+#
+# Formulae are intentionally unpinned — latest is desired for dev tooling
+# (see the hermetic exception in plan.md).
+
+tap "hashicorp/tap"
 tap "homebrew/bundle"
-tap "null-dev/firefox-profile-switcher"
+tap "mongodb/brew"
+tap "oven-sh/bun"
+tap "supabase/tap"
+tap "warrensbox/tap"
+
+# --- Terminal stack ---
 brew "coreutils"
-brew "powerlevel10k"
+brew "fzf"               # fuzzy finder — sesh picker, Ctrl-R history, Ctrl-T files
+brew "neovim"
+brew "sesh"              # tmux session manager / project switcher
+brew "starship"          # prompt
+brew "stow"              # GNU Stow — symlinks the per-tool dotfile packages
 brew "tmux"
-brew "null-dev/firefox-profile-switcher/firefox-profile-switcher-connector"
-cask "1password"
-cask "authy"
-cask "balenaetcher"
-cask "discord"
-cask "docker"
-cask "firefox"
-cask "iina"
-cask "microsoft-auto-update"
-cask "microsoft-office"
+brew "tree-sitter-cli"   # compiles nvim treesitter parsers (main branch needs it)
+brew "vim"
+brew "zoxide"            # smart dir jumping; records dirs to seed sesh
+
+# --- Shell / general CLI ---
+brew "direnv"
+brew "gh"
+brew "gnupg"
+brew "pinentry-mac"      # GPG passphrase prompt that works under macOS
+brew "jq"
+brew "yq"
+brew "ripgrep"           # rg; RIPGREP_CONFIG_PATH in .zshrc
+brew "tree"
+brew "parallel"
+brew "pandoc"
+brew "pre-commit"
+brew "shellcheck"
+brew "bats-core"         # bash test framework
+brew "bfg"               # repo history rewriter
+brew "mise"              # polyglot runtime version manager
+
+# --- Language toolchains ---
+brew "go"
+brew "gopls"
+brew "rust"
+brew "rust-analyzer"
+brew "pyenv"
+brew "pyright"
+brew "uv"                # fast Python package/proj manager
+brew "pnpm"
+brew "oven-sh/bun/bun"
+brew "dotnet"
+brew "powershell"
+brew "lua-language-server"
+brew "bazel"
+brew "buf"               # protobuf workflows
+brew "protobuf"
+brew "go-task"           # taskfile.dev runner
+
+# --- DevOps / cloud CLIs (the shell config in stow/zsh/.zshrc assumes these) ---
+brew "awscli"
+brew "azure-cli"
+brew "argocd"
+brew "helm"
+brew "infracost"
+brew "krew"              # kubectl plugin manager (KREW_ROOT in .zshrc)
+brew "kube-linter"
+brew "kubeconform"
+brew "kubectx"           # provides kubectx + kubens
+brew "kubernetes-cli"    # kubectl
+brew "minikube"
+brew "tflint"
+brew "tilt"
+brew "terraform-docs"
+brew "trivy"
+brew "crane"             # OCI image tool
+brew "hashicorp/tap/hcp"
+brew "hashicorp/tap/packer"
+brew "hashicorp/tap/terraform"
+brew "hashicorp/tap/terraform-ls"
+brew "hashicorp/tap/vault"
+
+# --- Containers ---
+# docker (formula) ships only the CLI; docker-desktop (cask) provides the engine.
+# link:false avoids fighting Docker Desktop for the /usr/local symlink on Intel.
+brew "docker", link: false
+brew "docker-compose"
+cask "docker-desktop"
+
+# --- Backends / databases ---
+brew "liquibase"
+brew "mongosh"
+brew "mongodb/brew/mongodb-database-tools"
+brew "redis"
+brew "supabase/tap/supabase"
+brew "libpq", link: true # provides psql; link:true so it's on PATH
+brew "tbls"              # schema docs generator
+
+# --- Networking ---
+brew "tailscale"
+cask "tailscale-app"
+
+# --- Cloud SDKs ---
+cask "gcloud-cli"        # was `google-cloud-sdk`; current cask is gcloud-cli
+cask "session-manager-plugin"
+cask "warrensbox/tap/tfswitch"
+
+# --- Fonts ---
+# Complete Meslo Nerd Font. Set iTerm's profile font to "MesloLGS Nerd Font Mono"
+# (NOT the minimal "MesloLGS NF" — it lacks the glyphs which-key/Starship use).
+cask "font-meslo-lg-nerd-font"
+
+# --- Dev apps ---
 cask "rectangle"
 cask "visual-studio-code"
-cask "whatsapp"
-cask "zoom"
+
+# --- VS Code extensions ---
+vscode "anthropic.claude-code"
 vscode "dbaeumer.vscode-eslint"
+vscode "docker.docker"
 vscode "esbenp.prettier-vscode"
 vscode "github.vscode-github-actions"
 vscode "hashicorp.terraform"
+vscode "mechatroner.rainbow-csv"
+vscode "ms-azuretools.vscode-containers"
 vscode "ms-azuretools.vscode-docker"
+vscode "ms-kubernetes-tools.vscode-kubernetes-tools"
+vscode "ms-python.debugpy"
 vscode "ms-python.isort"
 vscode "ms-python.python"
+vscode "ms-python.vscode-pylance"
+vscode "ms-python.vscode-python-envs"
 vscode "ms-vscode.cmake-tools"
+vscode "ms-vscode.cpp-devtools"
 vscode "ms-vscode.cpptools"
 vscode "ms-vscode.cpptools-extension-pack"
 vscode "ms-vscode.cpptools-themes"
 vscode "ms-vscode.makefile-tools"
+vscode "ms-vscode.powershell"
 vscode "ms-vscode.vscode-typescript-next"
 vscode "ms-vsliveshare.vsliveshare"
 vscode "redhat.vscode-yaml"

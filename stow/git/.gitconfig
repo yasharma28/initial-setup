@@ -1,0 +1,86 @@
+# Machine-local override (always loaded if present). Use for one-off
+# machine-specific tweaks. Never committed — create per machine.
+[include]
+    path = ~/.gitconfig.local
+
+# Default identity (personal). Per-tree overrides below pick the right
+# signing key + sshCommand based on which Documents/ subtree the repo is in.
+[user]
+    name = Yash Sharma
+    email = yasharma28@gmail.com
+    username = yasharma28
+
+# Personal repos under ~/Documents/personal/ — file provided by the
+# `git-personal` Stow overlay (make setup PROFILE=personal).
+[includeIf "gitdir:~/Documents/personal/"]
+    path = ~/.gitconfig_personal
+
+# Work repos under ~/Documents/work/ — file provided by the
+# `git-work` Stow overlay (make setup PROFILE=work).
+[includeIf "gitdir:~/Documents/work/"]
+    path = ~/.gitconfig_work
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = nvim
+    whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+    pager = less
+    excludesFile = ${HOME}/.gitignore
+
+[alias]
+    co = checkout
+    br = branch
+    ci = commit
+    st = status
+    lg = log --graph --oneline --decorate --all
+    last = log -1 HEAD
+    amend = commit --amend --no-edit
+    save = "!git add -A && git commit -m 'WIP'"
+    unstage = reset HEAD --
+
+[diff]
+    tool = nvimdiff
+
+[merge]
+    tool = nvimdiff
+
+[mergetool]
+    prompt = false
+
+[web]
+    browser = firefox
+
+[push]
+    default = current
+
+[credential]
+    # macOS Keychain — no plaintext ~/.git-credentials. On Linux, override in
+    # ~/.gitconfig.local with e.g. `helper = cache --timeout=3600` or libsecret.
+    helper = osxkeychain
+
+[rebase]
+    autosquash = true
+
+[color]
+    ui = auto
+
+[log]
+    decorate = short
+
+[status]
+    short = true
+    branch = true
+
+[fetch]
+    prune = true
+
+[pull]
+    rebase = true
+
+[commit]
+    template = ${HOME}/.gitmessage.txt
+
+[rerere]
+    enabled = true

@@ -1,0 +1,6 @@
+# stylua formatting config for the Neovim Lua. `make lint` runs `stylua --check`.
+column_width = 100
+indent_type = "Spaces"
+indent_width = 4
+quote_style = "AutoPreferDouble"
+call_parentheses = "Always"

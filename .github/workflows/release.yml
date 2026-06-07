@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.base.ref }}
@@ -44,10 +44,12 @@ jobs:
 
           IFS='.' read -r MAJOR MINOR PATCH <<< "${LATEST_TAG#v}"
 
+          # Use $(( )) assignment, not ((var++)): GitHub runs steps with bash -e,
+          # and ((PATCH++)) returns exit 1 when PATCH=0, failing the first release.
           case "${{ steps.release_type.outputs.RELEASE_TYPE }}" in
-            major) ((MAJOR++)); MINOR=0; PATCH=0 ;;
-            minor) ((MINOR++)); PATCH=0 ;;
-            patch) ((PATCH++)) ;;
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
           esac
 
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
@@ -62,12 +64,10 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.release_type.outputs.RELEASE_TYPE != 'none'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.generate_tag.outputs.NEW_TAG }}
-          release_name: Release ${{ steps.generate_tag.outputs.NEW_TAG }}
+          name: Release ${{ steps.generate_tag.outputs.NEW_TAG }}
           body: |
             Automated ${{ steps.release_type.outputs.RELEASE_TYPE }} release of version ${{ steps.generate_tag.outputs.NEW_TAG }}
 

@@ -1,104 +1,99 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# == debian_utils.sh ==
+# Provisions the terminal stack on Debian/Ubuntu and updates system packages.
+# Unlike macOS (one Brewfile), Linux tools come from apt plus a couple of
+# official installers. Neovim is pulled from the official release tarball
+# because apt's build is usually too old for the treesitter main branch
+# (which needs Neovim 0.11+).
+set -euo pipefail
 
-# Flag for dry run mode
-DRY_RUN=false
+readonly LOCAL_BIN="${HOME}/.local/bin"
+readonly NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
+readonly NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/${NVIM_TARBALL}"
 
-#######################################
-# Display usage information.
-# Outputs:
-#   Output to STDOUT.
-#######################################
+readonly EXIT_USAGE=1
+
+err() { echo "[ERROR] $(date '+%H:%M:%S') $*" >&2; }
+log() { echo "[INFO]  $(date '+%H:%M:%S') $*"; }
+
 usage() {
-    cat << EOF
+  cat <<EOF
 Usage: ${0##*/} [OPTIONS]
 
-A set of utility functions to setup/run programs smoothly.
-
-OPTIONS:
-  -h, --help                        Display this help message and exit.
-  -u, --update-debian-packages      Update Ubuntu and upgrade its packages.
-  --dry-run                         Simulate the operations without executing them.
-
-EXAMPLES:
-  ${0##*/} --help
-      Display this help message.
-
-  ${0##*/} --update-debian-packages
-      Update Ubuntu and upgrade its packages.
-
-  ${0##*/} --dry-run --update-debian-packages
-      Simulate the update of Ubuntu packages without making any changes.
-
+  -i, --install   Install the terminal stack (apt tools + neovim + starship + sesh).
+  -u, --update    Update and upgrade system packages (must run as root).
+  -h, --help      Show this help.
 EOF
 }
 
-#######################################
-# Update Debian packages.
-# Globals:
-#   DRY_RUN
-# Outputs:
-#   Output to STDOUT and STDERR.
-#######################################
-update_debian_packages() {
-    if $DRY_RUN; then
-        echo "[DRY RUN] Would update package list."
-        echo "[DRY RUN] Would upgrade installed packages."
-        echo "[DRY RUN] Would remove unnecessary packages and clean up cached files."
-        return
-    fi
-
-    # Check if the script is run as root
-    if [[ $EUID -ne 0 ]]; then
-        echo "This script must be run as root."
-        exit 1
-    fi
-
-    # Update the package list
-    apt update
-
-    # Upgrade all installed packages
-    apt upgrade -y
-
-    # Clean up unnecessary packages and cached files
-    apt autoremove -y
-    apt clean
-
-    # Display a message indicating the update is complete
-    echo "Ubuntu and all packages have been updated."
+install_apt_tools() {
+  log "installing base tools via apt (sudo)"
+  sudo apt-get update
+  sudo apt-get install -y \
+    build-essential curl git stow tmux fzf zoxide ripgrep zsh unzip
 }
 
-#######################################
-# Main function to parse arguments and execute corresponding functions.
-# Globals:
-#   DRY_RUN
-# Arguments:
-#   Command line arguments.
-# Outputs:
-#   Output to STDOUT and STDERR.
-#######################################
+install_neovim() {
+  if command -v nvim &>/dev/null; then
+    log "neovim already present: $(nvim --version | head -1)"
+    return 0
+  fi
+  log "installing neovim from official release tarball"
+  local tmp
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "${tmp}"' RETURN
+  curl -fsSL -o "${tmp}/${NVIM_TARBALL}" "${NVIM_URL}"
+  tar -C "${HOME}/.local" -xzf "${tmp}/${NVIM_TARBALL}" --strip-components=1
+  mkdir -p "${LOCAL_BIN}"
+}
+
+install_starship() {
+  command -v starship &>/dev/null && { log "starship present"; return 0; }
+  log "installing starship"
+  curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b "${LOCAL_BIN}"
+}
+
+install_sesh() {
+  command -v sesh &>/dev/null && { log "sesh present"; return 0; }
+  if command -v go &>/dev/null; then
+    log "installing sesh via go install"
+    go install github.com/joshmedeski/sesh/v2@latest
+  else
+    err "sesh needs Go (or a release binary) — install Go or grab a release from"
+    err "https://github.com/joshmedeski/sesh/releases and place it on PATH"
+  fi
+}
+
+install_stack() {
+  install_apt_tools
+  install_neovim
+  install_starship
+  install_sesh
+  log "stack installed — run scripts/bootstrap_terminal.sh next (the Makefile does this)"
+}
+
+update_packages() {
+  if [[ ${EUID} -ne 0 ]]; then
+    err "package update must run as root"
+    exit "${EXIT_USAGE}"
+  fi
+  log "updating apt packages"
+  apt-get update
+  apt-get upgrade -y
+  apt-get autoremove -y
+  apt-get clean
+}
+
 main() {
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            --help|-h)
-                usage
-                exit 0
-                ;;
-            --update-debian-packages|-u)
-                update_debian_packages
-                shift
-                ;;
-            --dry-run)
-                DRY_RUN=true
-                shift
-                ;;
-            *)
-                echo "ERROR: encountered invalid argument $1"
-                usage
-                exit 1
-                ;;
-        esac
-    done
+  [[ $# -eq 0 ]] && { usage; exit "${EXIT_USAGE}"; }
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help) usage; exit 0 ;;
+      -i|--install) install_stack; shift ;;
+      -u|--update) update_packages; shift ;;
+      *) err "invalid argument: $1"; usage; exit "${EXIT_USAGE}" ;;
+    esac
+  done
 }
 
-# Execute the main function with all the arguments
 main "$@"

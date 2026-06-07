@@ -1,0 +1,81 @@
+# Starship prompt — approximates the previous Powerlevel10k setup.
+# Two-line layout: context on top, a clean input character below.
+# DevOps context (k8s/aws/gcloud/terraform) shows only inside relevant dirs.
+# Docs: https://starship.rs/config/
+
+# Don't stall the prompt on git status in very large repos.
+command_timeout = 1000
+
+# No blank line before each prompt — keeps the prompt flush under the window
+# top and avoids a leading gap on the first line of a session.
+add_newline = false
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$kubernetes\
+$aws\
+$gcloud\
+$terraform\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "bold cyan"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+
+[git_status]
+style = "bold yellow"
+
+# Surfaced for DevOps work — kubernetes is off by default in Starship.
+[kubernetes]
+disabled = false
+symbol = "☸ "
+style = "bold blue"
+format = '[$symbol$context( \($namespace\))]($style) '
+
+[aws]
+symbol = "aws "
+# AWS brand orange — distinct from git_status yellow and gcp red.
+style = "bold #FF9900"
+format = '[$symbol$profile( \($region\))]($style) '
+
+[gcloud]
+symbol = "gcp "
+# Google brand red — was bold blue and clashed visually with the k8s segment.
+style = "bold #EA4335"
+# Renders as "gcp <local-part>" — e.g. "gcp yasharma28".
+# Rationale for each piece dropped from Starship's default format:
+#   "on " prefix → reads as cloud-provider context (running ON gcp) but is
+#                  really just CLI auth state. Misleading; dropped.
+#   "@$domain"   → personal accounts are gmail.com, work is the org domain
+#                  (which the AWS segment already disambiguates). Redundant.
+#   "($project)" → gcloud's auto-created default project for Vertex/Gemini
+#                  is a meaningless string like gen-lang-client-0857961856.
+#                  Re-add `\(${project}\)` to the format if you start using
+#                  gcloud for project-specific work.
+format = '[$symbol$account]($style) '
+
+[terraform]
+symbol = "tf "
+style = "bold purple"
+# Workspace only (the version lookup is the slow part of this module).
+format = '[$symbol$workspace]($style) '
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+# Desaturated so the duration doesn't compete with the active cloud segments
+# for attention — it's a useful but secondary signal.
+style = "bold #888888"

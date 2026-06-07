@@ -1,0 +1,15 @@
+# Global gitignore — deployed to ~/.gitignore (git core.excludesFile). User-level
+# OS/editor junk only; per-repo artifacts belong in each repo's own .gitignore.
+.DS_Store
+ehthumbs.db
+Thumbs.db
+Icon?
+
+*~
+*.swp
+*.swo
+
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace

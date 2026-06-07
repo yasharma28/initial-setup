@@ -1,0 +1,15 @@
+# == .gitconfig_personal ==
+# Personal identity overlay — sourced by ~/.gitconfig via includeIf for repos
+# under ~/Documents/personal/. Provides personal signing key + sshCommand.
+# Stowed by the `git-personal` package (make setup PROFILE=personal).
+
+[user]
+    name = Yash Sharma
+    email = yasharma28@gmail.com
+    username = yasharma28
+    signingkey = 70F562AF51EEC40C4D9570AB01C707A3AD241AD6
+
+# Pin SSH identity for personal pushes — IdentitiesOnly stops ssh-agent from
+# offering the work key first and getting blocked by GitHub.
+[core]
+    sshCommand = ssh -i ~/.ssh/ed25519_github -o IdentitiesOnly=yes

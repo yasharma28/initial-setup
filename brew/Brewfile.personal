@@ -1,0 +1,44 @@
+# == Brewfile.personal ==
+# Personal-laptop extras, layered on the core Brewfile via
+# `make mac_setup PROFILE=personal`. Comms, media, office, AI editors, and
+# personal-account apps that a fresh work machine shouldn't pull in.
+
+tap "null-dev/firefox-profile-switcher"
+
+# --- Browsers ---
+cask "firefox"
+cask "google-chrome"
+
+# --- Communications ---
+cask "discord"
+cask "microsoft-teams"
+cask "signal"
+cask "slack"
+cask "webex"
+cask "whatsapp"
+cask "zoom"
+
+# --- Microsoft Office stack ---
+cask "microsoft-auto-update"
+cask "microsoft-office"
+
+# --- Personal productivity / notes / VPN / password manager ---
+cask "1password"
+cask "1password-cli"
+cask "obsidian"
+cask "protonvpn"
+
+# --- AI-assist editors (personal-account licensed) ---
+cask "claude"
+cask "cursor"
+cask "zed"
+
+# --- Media / creative ---
+cask "iina"
+cask "darktable"
+
+# --- Utilities ---
+cask "balenaetcher"
+
+# --- Firefox profile switcher (browser integration for multi-profile workflow) ---
+brew "null-dev/firefox-profile-switcher/firefox-profile-switcher-connector"

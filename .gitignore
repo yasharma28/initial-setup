@@ -64,3 +64,21 @@ out/
 *.bak
 *.tmp
 *.old
+
+# Never commit real secrets or credentials #
+############################################
+**/credentials
+aws/credentials
+.secrets*
+*.secret
+secrets.sh
+# brew bundle dump snapshot (scratch; reconcile into the curated Brewfiles)
+brew/Brewfile.dump
+
+# Real AWS config carries workplace identifiers (SSO start URL, account IDs,
+# profile names) and is per-machine. The aws-personal / aws-work overlay
+# directories are stow-managed locally but never committed; only the public
+# template (stow/aws/.aws/config.example) lives in git. Transport between
+# machines is manual (scp the file once).
+stow/aws-personal/.aws/config
+stow/aws-work/.aws/config
