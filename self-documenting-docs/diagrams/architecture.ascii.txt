@@ -1,0 +1,45 @@
+SELF-DOCUMENTING DOCS STACK  v3  —  two deliverables, one contract
+Legend: [E]=existing/reuse OSS  [C]=build  (hermetic)=byte-reproducible
+================================================================================
+
+  1 · PR STAGE (guard, before merge)
+     Developer opens PR ──► [C] doc-gen drift check (uses manifest covers:) ──┐
+                                                                              │ passes
+  2 · TRIGGER                                                                 ▼
+     Merge to main (GitHub) ──► [E] GitHub Actions  on push:[main], path-filtered
+
+  ┌─ DELIVERABLE 1 — Repo Generator (Go CLI / Skill) ── docs stay in repo ──────┐
+  │   [C] doc-gen CLI / Skill (entrypoint)                                       │
+  │            │                                                                 │
+  │            ▼                                                                 │
+  │   [E] codebase-memory-mcp ──► graph (index / detect_changes)                 │
+  │     ┌──────┬───────────────────┬───────────────────┬───────────────┐        │
+  │     ▼      ▼                   ▼                   ▼               ▼        │
+  │  Reference 30-39      Explanation 10-19      Scaffold stubs    Divio profile │
+  │  (hermetic) [E]       [C] LLM, pinned,       00/20/99 [C]      + WHY-comments │
+  │  godoc·pdoc·          temp0, drift-gated     (only if          + ordering [C] │
+  │  TypeDoc·rustdoc·     get_architecture       missing — never                  │
+  │  terraform-docs       → Mermaid              clobber human)                   │
+  │     └──────┴───────────────────┴───────────────────┴───────────────┘        │
+  │                              ▼                                                │
+  │   OUTPUT CONTRACT (the seam): /docs Markdown + manifest.json (covers:)        │
+  │        │   ▲ covers: → graph nodes (exact invalidation)                       │
+  │        │   └───────────────────────────────────────────────                  │
+  │        └─ (optional) publish adapter → per-repo site / Pages                  │
+  └──────────────────────────────────┬───────────────────────────────────────────┘
+                                      │  manifest.json == ingestion API
+                                      ▼
+  ┌─ DELIVERABLE 2 — Org Search App (self-hostable, CONSUME-ONLY) ──────────────┐
+  │   index = derived cache, rebuildable from repos = the hermetic projection    │
+  │   [C] Ingest on merge (webhook/poll) ──► [E] Index DB (SQLite FTS5+sqlite-vec │
+  │                                              or Meilisearch) ──► [E] Search UI │
+  │                                                       │             │         │
+  │                                                       ▼             ▼         │
+  │                                          New devs: onboarding   Incident:     │
+  │                                                                 cross-team    │
+  └──────────────────────────────────────────────────────────────────────────────┘
+
+  LOCAL DEV LOOP: [E] Claude Code / OpenCode + codebase-memory-mcp ◄── reads same /docs
+
+  DeepWiki-Open: STUDIED, NOT ADOPTED — reuse parts (chunking, diagram prompts),
+                 not its generate-and-serve app architecture.

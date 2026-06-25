@@ -1,0 +1,44 @@
+# == docgen org base config ==
+# Org-wide defaults inherited by every repo via `extends`.
+# Set accessibility, model, and quadrant policy ONCE here so 100+ repos stay
+# consistent. Repos override only what genuinely differs.
+# Lives in its own config repo; pin the ref when extending for reproducibility.
+
+version: "1.0"
+profile: divio
+
+# --- Diagram rendering ---
+# okabe-ito is the org accessibility standard; every diagram is colorblind-safe.
+# Two formats so the org search app serves mermaid on web and ascii in the incident CLI.
+render:
+  diagramFormats:
+    - mermaid
+    - ascii
+  diagramDirection: TD
+  mermaid:
+    theme: neutral
+    palette: okabe-ito
+
+# --- LLM (Explanation quadrant) ---
+# Routed through Bedrock so source stays in-tenant. The key is read from the
+# environment, never stored in any committed config.
+llm:
+  provider: bedrock
+  model: claude-opus-4-8
+  temperature: 0
+  apiKeyEnv: AWS_BEARER_TOKEN_BEDROCK
+
+# --- Quadrant policy ---
+# Reference and Explanation are tool-owned. Tutorials are always human-authored.
+# How-to and troubleshooting are scaffolded once, then left to humans.
+quadrants:
+  reference: generate
+  explanation: generate
+  howto: stub
+  tutorial: human
+  troubleshooting: stub
+
+# --- Drift gate ---
+drift:
+  failBuild: true
+  confidenceThreshold: 0.8

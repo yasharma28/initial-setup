@@ -1,0 +1,37 @@
+# == docgen config — auth-service ==
+# Per-repo overrides on top of the org base. Inherits accessibility, model, and
+# quadrant policy; only declares what is specific to this repo.
+
+version: "1.0"
+extends: https://raw.githubusercontent.com/pindrop/docgen-config/v1.2.0/base.yaml
+
+# --- Sources ---
+# Regenerate only when application code or the Terraform changes, so doc churn
+# does not fire on unrelated commits at org scale.
+sources:
+  exclude:
+    - vendor/**
+    - "**/*_test.go"
+  pathFilters:
+    - internal/**
+    - cmd/**
+    - "*.tf"
+
+# --- Toolchain pins ---
+# Override the org default Go toolchain to match this repo's go.mod.
+languages:
+  auto: true
+  tools:
+    go:
+      tool: godoc
+      version: go1.23.4
+    terraform:
+      tool: terraform-docs
+      version: 0.19.0
+
+# --- Publish ---
+# This repo also ships a standalone versioned doc site to Pages, in addition to
+# being indexed by the org search app.
+publish:
+  adapter: pages
+  target: gh-pages

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/docgen/docgen.schema.json",
+  "title": "docgen config (docgen.yaml)",
+  "description": "The INPUT contract: how the generator runs. Resolution order is built-in defaults < org base (via extends) < this repo file < CLI flags. The resolved render/llm/toolchain values are copied into manifest.json as provenance and feed inputsHash, so this file is what makes the hermetic guarantee auditable. Secrets are NEVER stored here -- only the names of env vars that hold them.",
+  "type": "object",
+  "required": ["version"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Config schema version; bumped on breaking shape changes.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "examples": ["1.0"]
+    },
+    "extends": {
+      "description": "Org base config to inherit (URL or path). This is the DRY lever: set palette, llm, and quadrant policy ONCE org-wide; repos override only what differs.",
+      "type": "string",
+      "examples": ["https://raw.githubusercontent.com/pindrop/docgen-config/main/base.yaml"]
+    },
+    "profile": {
+      "description": "Output structure. divio = the numbered quadrant layout; flat = single README-style tree.",
+      "type": "string",
+      "enum": ["divio", "flat"],
+      "default": "divio"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "include": { "type": "array", "items": { "type": "string" }, "default": ["**/*"] },
+        "exclude": { "type": "array", "items": { "type": "string" }, "default": ["vendor/**", "node_modules/**", "**/*_test.go"] },
+        "pathFilters": {
+          "description": "CI regen trigger: a merge regenerates only when files matching these change. Empty = regen on any change.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "languages": {
+      "description": "Reference-tool toolchain. auto=true detects languages and uses pinned defaults; tools[] overrides per language. Pinned versions are what make the Reference quadrant hermetic.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auto": { "type": "boolean", "default": true },
+        "tools": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["tool", "version"],
+            "additionalProperties": false,
+            "properties": {
+              "tool": { "type": "string" },
+              "version": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "quadrants": {
+      "description": "Per-quadrant generation policy. generate=tool owns it (may overwrite); stub=scaffold placeholder only if missing; human=never touch; skip=don't create.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reference":       { "$ref": "#/$defs/policy", "default": "generate" },
+        "explanation":     { "$ref": "#/$defs/policy", "default": "generate" },
+        "howto":           { "$ref": "#/$defs/policy", "default": "stub" },
+        "tutorial":        { "$ref": "#/$defs/policy", "default": "human" },
+        "troubleshooting": { "$ref": "#/$defs/policy", "default": "stub" }
+      }
+    },
+    "render": {
+      "description": "Diagram rendering. Mirrors manifest.generator.render -- these are inputs, so changing them busts inputsHash and forces regeneration.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "diagramFormats": { "type": "array", "items": { "type": "string", "enum": ["mermaid", "plantuml", "d2", "ascii"] }, "default": ["mermaid"] },
+        "diagramDirection": { "type": "string", "enum": ["TD", "LR", "BT", "RL"], "default": "TD" },
+        "mermaid": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "theme": { "type": "string", "enum": ["default", "neutral", "dark", "forest", "base"], "default": "neutral" },
+            "palette": { "type": "string", "examples": ["okabe-ito", "paul-tol", "default", "custom"] },
+            "themeVariables": { "type": "object", "additionalProperties": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "llm": {
+      "description": "Drives the Explanation quadrant only. apiKeyEnv names the env var holding the secret -- the key itself is NEVER in this file (it is committed to repos).",
+      "type": "object",
+      "required": ["provider", "model"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string", "enum": ["anthropic", "openai", "bedrock", "vertex", "ollama"] },
+        "model": { "type": "string", "examples": ["claude-opus-4-8"] },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2, "default": 0 },
+        "apiKeyEnv": { "type": "string", "examples": ["ANTHROPIC_API_KEY"] },
+        "promptOverride": { "type": "string", "description": "Path to a custom prompt template; default uses the built-in pinned prompt." }
+      }
+    },
+    "graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reindex": { "type": "string", "enum": ["incremental", "full"], "default": "incremental" },
+        "binary": { "type": "string", "default": "auto", "description": "Path to codebase-memory-mcp, or auto to discover on PATH." }
+      }
+    },
+    "drift": {
+      "description": "The docgen drift subcommand (PR check). Uses manifest covers[] to find stale docs.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "failBuild": { "type": "boolean", "default": true },
+        "confidenceThreshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.8 }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "docsDir": { "type": "string", "default": "docs" },
+        "diagramsSubdir": { "type": "string", "default": "docs/diagrams" },
+        "manifest": { "type": "string", "default": "docs/manifest.json" }
+      }
+    },
+    "publish": {
+      "description": "Optional per-repo publish adapter. The org search app does NOT use this -- it ingests the manifest directly.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "adapter": { "type": "string", "enum": ["none", "pages", "techdocs", "docusaurus"], "default": "none" },
+        "target": { "type": "string", "description": "Adapter-specific destination (gh-pages branch, S3/GCS bucket, etc.)." }
+      }
+    }
+  },
+  "$defs": {
+    "policy": { "type": "string", "enum": ["generate", "stub", "human", "skip"] }
+  }
+}

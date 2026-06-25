@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/docgen/manifest.schema.json",
+  "title": "Repo Docs Manifest",
+  "description": "The contract emitted by the repo-level generator at <repo>/docs/manifest.json. It is the single seam between deliverables: publish adapters, the drift check, and the org search app all read this and nothing else. It doubles as the Bazel-style dependency record -- the per-doc covers[] edges are what make invalidation exact and incremental on merge instead of a full rebuild.",
+  "type": "object",
+  "required": ["schemaVersion", "repo", "generator", "docs"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Bumped only on breaking shape changes so adapters can refuse mismatches loudly.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "examples": ["1.0"]
+    },
+    "repo": {
+      "type": "object",
+      "required": ["name", "url", "defaultBranch", "commit"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "org/repo slug used as the org-app primary key." },
+        "url": { "type": "string", "format": "uri" },
+        "defaultBranch": { "type": "string", "examples": ["main"] },
+        "commit": {
+          "description": "The exact SHA these docs were generated from -- the provenance anchor for the whole manifest.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "generator": {
+      "description": "Everything needed to reason about reproducibility. The hermetic claim is auditable from here: pinned versions + (for the LLM) provider/model/temperature/promptHash.",
+      "type": "object",
+      "required": ["tool", "version", "profile"],
+      "additionalProperties": false,
+      "properties": {
+        "tool": { "type": "string", "examples": ["docgen"] },
+        "version": { "type": "string", "examples": ["0.3.1"] },
+        "profile": { "type": "string", "default": "divio", "examples": ["divio", "flat"] },
+        "render": {
+          "description": "Resolved rendering config (from built-in < org base < repo docgen.yaml < CLI flags). WHY it lives here: these are generation INPUTS, so they feed every diagram's inputsHash -- recording them is what keeps the hermetic claim honest. Change the palette and inputsHash changes, forcing regeneration.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "diagramFormats": {
+              "description": "Every rendition the generator emitted. The org app picks per surface (mermaid on web, ascii in an incident CLI).",
+              "type": "array",
+              "items": { "type": "string", "enum": ["mermaid", "plantuml", "d2", "ascii"] }
+            },
+            "diagramDirection": { "type": "string", "enum": ["TD", "LR", "BT", "RL"] },
+            "mermaid": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "theme": { "type": "string", "enum": ["default", "neutral", "dark", "forest", "base"] },
+                "palette": {
+                  "description": "Named accessible palette, or 'custom' with explicit themeVariables.",
+                  "type": "string",
+                  "examples": ["okabe-ito", "paul-tol", "default", "custom"]
+                },
+                "themeVariables": {
+                  "description": "Explicit Mermaid theme vars when palette=custom (e.g. colorblind-safe hexes).",
+                  "type": "object",
+                  "additionalProperties": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "llm": {
+          "description": "Present only for non-hermetic (Explanation) generation. Pinned so the same inputs are as reproducible as a provider allows.",
+          "type": "object",
+          "required": ["provider", "model", "temperature", "promptHash"],
+          "additionalProperties": false,
+          "properties": {
+            "provider": { "type": "string", "enum": ["anthropic", "openai", "bedrock", "vertex", "ollama"] },
+            "model": { "type": "string", "examples": ["claude-opus-4-8"] },
+            "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+            "promptHash": { "type": "string", "description": "sha256 of the frozen prompt template." }
+          }
+        }
+      }
+    },
+    "toolchain": {
+      "description": "Pinned versions of every reference generator and the graph engine. WHY: the Reference quadrant's hermetic guarantee is only meaningful if these are fixed.",
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "examples": [{ "godoc": "go1.23.4", "terraform-docs": "0.19.0", "codebase-memory-mcp": "1.4.2" }]
+    },
+    "graph": {
+      "description": "The codebase-memory-mcp snapshot the run read. snapshotHash pins the graph so a doc's inputsHash is fully determined.",
+      "type": "object",
+      "required": ["provider", "snapshotHash"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "type": "string", "default": "codebase-memory-mcp" },
+        "snapshotHash": { "type": "string" },
+        "stats": {
+          "type": "object",
+          "additionalProperties": { "type": "integer" },
+          "examples": [{ "functions": 12630, "routes": 391, "packages": 536 }]
+        }
+      }
+    },
+    "docs": {
+      "description": "One entry per emitted doc file. The org app ingests this array directly; the drift check diffs covers[] against changed symbols.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/doc" }
+    }
+  },
+  "$defs": {
+    "doc": {
+      "type": "object",
+      "required": ["path", "title", "kind", "hermetic", "authored", "contentHash", "covers"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "examples": ["docs/30-api-reference.md"] },
+        "title": { "type": "string" },
+        "quadrant": {
+          "description": "Divio number range start, mirrors documentation.md. Absent for flat profile.",
+          "type": "integer",
+          "enum": [0, 10, 20, 30, 99]
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["tutorial", "explanation", "howto", "reference", "troubleshooting"]
+        },
+        "hermetic": {
+          "description": "true => byte-reproducible from inputsHash (Reference). false => LLM-written (Explanation) -- regenerate-and-review, not rebuild-blindly.",
+          "type": "boolean"
+        },
+        "authored": {
+          "description": "Who owns the content. 'stub' = scaffolded placeholder the generator may overwrite; 'human' = hand-written, NEVER overwritten; 'generated' = tool output, safe to regenerate.",
+          "type": "string",
+          "enum": ["generated", "human", "stub"]
+        },
+        "contentHash": { "type": "string", "description": "sha256 of rendered bytes -- change detection + org-app cache key." },
+        "inputsHash": {
+          "description": "sha256 of (graph subset + source slices + prompt/toolchain pins) that produced this doc. Equal inputsHash => skip regeneration. This is the Bazel action cache key.",
+          "type": "string"
+        },
+        "covers": {
+          "description": "The dependency edges back to code. On merge, intersect changed nodes with every doc's covers[]; only intersecting docs are stale. Exact invalidation, no semantic guessing.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string", "description": "One-line, indexed by the org search app for result snippets." },
+        "diagrams": {
+          "description": "Diagram renditions attached to this doc. A doc can carry several formats of the SAME diagram (mermaid for web, ascii for terminal). Each is a separate artifact so the org app renders the right one per surface.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["format"],
+            "additionalProperties": false,
+            "properties": {
+              "format": { "type": "string", "enum": ["mermaid", "plantuml", "d2", "ascii"] },
+              "path": { "type": "string", "description": "Repo-relative file, when rendered to a separate artifact." },
+              "inline": { "type": "boolean", "description": "true if embedded directly in the doc body instead of a file." },
+              "palette": { "type": "string", "description": "Resolved palette for this rendition; overrides generator.render.mermaid.palette." },
+              "title": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "ref": {
+      "type": "object",
+      "required": ["type", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["symbol", "package", "route", "path", "file"] },
+        "id": { "type": "string", "description": "Qualified name (symbol/package/route) or repo-relative path (path/file).", "examples": ["pkg/auth.ValidateToken", "POST /api/login", "internal/cache/"] },
+        "source": { "type": "string", "description": "Repo-relative file the ref lives in." },
+        "graphNodeId": { "type": "string", "description": "codebase-memory-mcp node id, when known -- lets the org app join straight to the graph." }
+      }
+    }
+  }
+}

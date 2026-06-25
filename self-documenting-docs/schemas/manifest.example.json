@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "repo": {
+    "name": "pindrop/auth-service",
+    "url": "https://github.com/pindrop/auth-service",
+    "defaultBranch": "main",
+    "commit": "9f1c2ab3de4567890abcdef1234567890abcdef0",
+    "generatedAt": "2026-06-25T18:40:00Z"
+  },
+  "generator": {
+    "tool": "docgen",
+    "version": "0.3.1",
+    "profile": "divio",
+    "render": {
+      "diagramFormats": ["mermaid", "ascii"],
+      "diagramDirection": "TD",
+      "mermaid": { "theme": "neutral", "palette": "okabe-ito" }
+    },
+    "llm": {
+      "provider": "bedrock",
+      "model": "claude-opus-4-8",
+      "temperature": 0,
+      "promptHash": "sha256:6b1f0c2a9e7d4c3b8a1f5e0d2c6b9a4f7e3d1c8b5a2f9e0d7c4b1a6f3e8d2c5b"
+    }
+  },
+  "toolchain": {
+    "godoc": "go1.23.4",
+    "terraform-docs": "0.19.0",
+    "codebase-memory-mcp": "1.4.2"
+  },
+  "graph": {
+    "provider": "codebase-memory-mcp",
+    "snapshotHash": "sha256:0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b",
+    "stats": { "functions": 842, "routes": 17, "packages": 23 }
+  },
+  "docs": [
+    {
+      "path": "docs/10-architecture.md",
+      "title": "Architecture Overview",
+      "quadrant": 10,
+      "kind": "explanation",
+      "hermetic": false,
+      "authored": "generated",
+      "contentHash": "sha256:11aa22bb33cc44dd55ee66ff77aa88bb99cc00dd11ee22ff33aa44bb55cc66dd",
+      "inputsHash": "sha256:aa00bb11cc22dd33ee44ff55aa66bb77cc88dd99ee00ff11aa22bb33cc44dd55",
+      "covers": [
+        { "type": "package", "id": "internal/session", "source": "internal/session/session.go" },
+        { "type": "route", "id": "POST /api/login", "source": "internal/handlers/login.go", "graphNodeId": "route:42" }
+      ],
+      "tags": ["architecture", "sessions"],
+      "summary": "How auth-service issues and validates sessions across the login and refresh paths.",
+      "diagrams": [
+        { "format": "mermaid", "path": "docs/diagrams/10-architecture.mmd", "palette": "okabe-ito", "title": "Session flow" },
+        { "format": "ascii", "inline": true, "title": "Session flow (terminal)" }
+      ]
+    },
+    {
+      "path": "docs/30-api-reference.md",
+      "title": "HTTP API Reference",
+      "quadrant": 30,
+      "kind": "reference",
+      "hermetic": true,
+      "authored": "generated",
+      "contentHash": "sha256:22bb33cc44dd55ee66ff77aa88bb99cc00dd11ee22ff33aa44bb55cc66dd77ee",
+      "inputsHash": "sha256:bb11cc22dd33ee44ff55aa66bb77cc88dd99ee00ff11aa22bb33cc44dd55ee66",
+      "covers": [
+        { "type": "route", "id": "POST /api/login", "source": "internal/handlers/login.go", "graphNodeId": "route:42" },
+        { "type": "route", "id": "POST /api/refresh", "source": "internal/handlers/refresh.go", "graphNodeId": "route:43" }
+      ],
+      "tags": ["api", "reference"],
+      "summary": "Generated endpoint reference: request/response shapes for login and refresh."
+    },
+    {
+      "path": "docs/00-getting-started.md",
+      "title": "Getting Started",
+      "quadrant": 0,
+      "kind": "tutorial",
+      "hermetic": false,
+      "authored": "human",
+      "contentHash": "sha256:33cc44dd55ee66ff77aa88bb99cc00dd11ee22ff33aa44bb55cc66dd77ee88ff",
+      "covers": []
+    }
+  ]
+}
